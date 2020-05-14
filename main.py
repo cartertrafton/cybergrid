@@ -25,6 +25,21 @@ def exit_sim():
     exit()
 
 
+# switch power source
+def switch_power_source():
+    print("switching power sources...")
+
+
+# switch GPS source
+def switch_gps_source():
+    print("switching GPS sources...")
+
+
+# cybergrid activate/deactivate
+def disable_cybergrid():
+    print("CYBERGRID!!!!")
+
+
 #### tkinter setup
 root = tk.Tk()
 root.title('cybergrid')
@@ -32,35 +47,52 @@ root.title('cybergrid')
 #### canvas and background
 canvas = tk.Canvas(root, height=HEIGHT, width=WIDTH)
 canvas.pack()
-
-background_image = tk.PhotoImage(file='background.gif')
-background_label = tk.Label(root, image=background_image)
+background_label = tk.Label(root, bg='gray')
 background_label.place(relwidth=1, relheight=1)
 
 #### frames
-node_frame = tk.Frame(root, bg='orange')
+# node status frame
+node_frame = tk.Frame(root, bg='white')
 node_frame.place(relx=0.025, rely=0.15, relwidth=0.45, relheight=0.35)
-
-PMU_frame = tk.Frame(root, bg='blue', bd=5)
+# PMU data frame
+PMU_frame = tk.Frame(root, bg='white', bd=5)
 PMU_frame.place(relx=0.525, rely=0.15, relwidth=0.45, relheight=0.35)
-
-map_frame = tk.Frame(root, bg='yellow', bd=5)
+# network map frame
+map_frame = tk.Frame(root, bg='white', bd=5)
 map_frame.place(relx=0.025, rely=0.55, relwidth=0.45, relheight=0.35)
-
-attack_frame = tk.Frame(root, bg='green', bd=5)
+# attack simulator frame
+attack_frame = tk.Frame(root, bg='white', bd=5)
 attack_frame.place(relx=0.525, rely=0.55, relwidth=0.45, relheight=0.35)
 
 #### labels
-label = tk.Label(root, text="CONTROL CENTER", bg='red', font=('consolas', 25))
-label.place(x=25, y=25, relwidth=0.3, relheight=0.1)
+label = tk.Label(root, text="CONTROL CENTER", bg='gray', font=('consolas', 25))
+label.place(relx=0.025, y=25, relwidth=0.3, relheight=0.1)
+label = tk.Label(node_frame, text="Nodes", bg='white', anchor='w', font=('consolas', 20, 'underline'))
+label.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
+label = tk.Label(PMU_frame, text="PMU", bg='white', anchor='w', font=('consolas', 20, 'underline'))
+label.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
+label = tk.Label(map_frame, text="Map", bg='white', anchor='w', font=('consolas', 20, 'underline'))
+label.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
+label = tk.Label(attack_frame, text="Attack Simulator", bg='white', anchor='w', font=('consolas', 20, 'underline'))
+label.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
+
 
 #### buttons
 # reset
-button1 = tk.Button(root, text="RESET", font=('consolas', 20), fg='red', command=reset_sim)
+button1 = tk.Button(root, text="RESET", font=('consolas', 20), bg='gray', fg='red', command=reset_sim)
 button1.place(relx=0.8, relwidth=0.1, relheight=0.1)
 # exit
-button2 = tk.Button(root, text="EXIT", font=('consolas', 20), fg='red', command=exit_sim)
+button2 = tk.Button(root, text="EXIT", font=('consolas', 20), bg='gray', fg='red', command=exit_sim)
 button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
+# power source
+button3 = tk.Button(attack_frame, text="POWER SPOOF", font=('consolas', 20), fg='red', command=switch_power_source)
+button3.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.2)
+# gps source
+button4 = tk.Button(attack_frame, text="GPS SPOOF", font=('consolas', 20), fg='red', command=switch_gps_source)
+button4.place(relx=0.2, rely=0.5, relwidth=0.6, relheight=0.2)
+# cybergrid activate/deactivate
+button5 = tk.Button(attack_frame, text="DISABLE CYBERGRID", font=('consolas', 20), fg='red', command=disable_cybergrid)
+button5.place(relx=0.2, rely=0.8, relwidth=0.6, relheight=0.2)
 
 #### main tkinter loop
 root.mainloop()
