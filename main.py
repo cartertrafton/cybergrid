@@ -19,6 +19,13 @@ def reset_sim():
     print("reset activated")
 
 
+# exit program
+def exit_sim():
+	print("Exiting CyberGrid...")
+	root.quit()
+	root.destroy()
+
+
 # switch power source
 def switch_power_source():
     print("switching power sources...")
@@ -86,7 +93,7 @@ label9.place(relx=0.025, rely=0.8, relwidth=0.5, relheight=0.1)
 button1 = tk.Button(root, text="RESET", font=('consolas', 20), bg='gray', fg='red', command=reset_sim)
 button1.place(relx=0.8, relwidth=0.1, relheight=0.1)
 # exit
-button2 = tk.Button(root, text="EXIT", font=('consolas', 20), bg='gray', fg='red', command=root.destroy)
+button2 = tk.Button(root, text="EXIT", font=('consolas', 20), bg='gray', fg='red', command=exit_sim)
 button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
 # power source
 button3 = tk.Button(attack_frame, text="POWER SPOOF", font=('consolas', 20), fg='red', command=switch_power_source)
@@ -113,5 +120,4 @@ while True:
 		root.update_idletasks()
 		root.update()				# update the GUI
 	except:
-		print("Exiting CyberGrid...")
 		exit()
