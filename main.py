@@ -7,6 +7,7 @@
 #
 
 import tkinter as tk
+from pmuFrame import pmuDataDisplay
 
 HEIGHT = 800
 WIDTH = 1200
@@ -107,6 +108,9 @@ button5.place(relx=0.2, rely=0.8, relwidth=0.6, relheight=0.2)
 
 #### pre mainloop
 print("Starting CyberGrid...")
+
+pmuDataDisplay(PMU_frame).pack(side="top", fill="both", expand=True)
+
 
 # cybergrid sim begin
 
