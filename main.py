@@ -91,10 +91,10 @@ label9.place(relx=0.025, rely=0.8, relwidth=0.5, relheight=0.1)
 
 #### buttons
 # reset
-button1 = tk.Button(root, text="RESET", font=('consolas', 20), bg='gray', fg='red', command=reset_sim)
+button1 = tk.Button(root, text="RESET", font=('consolas', 20), bg='white', fg='red', command=reset_sim)
 button1.place(relx=0.8, relwidth=0.1, relheight=0.1)
 # exit
-button2 = tk.Button(root, text="EXIT", font=('consolas', 20), bg='gray', fg='red', command=exit_sim)
+button2 = tk.Button(root, text="EXIT", font=('consolas', 20), bg='white', fg='red', command=exit_sim)
 button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
 # power source
 button3 = tk.Button(attack_frame, text="POWER SPOOF", font=('consolas', 20), fg='red', command=switch_power_source)
