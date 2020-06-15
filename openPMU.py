@@ -3,8 +3,10 @@ import os
 import sys
 
 if sys.platform == "linux":
+    print("linux")
     cmdP = 'gnome-terminal -x'
 elif sys.platform == 'win32':
+    print("windows")
     cmdP = 'cmd'
 
 pmuCall = 'PMU 1 127.0.0.1 1410 2048 true'
