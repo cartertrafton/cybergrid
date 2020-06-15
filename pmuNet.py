@@ -2,25 +2,26 @@ from synchrophasor.frame import *
 from synchrophasor.pmu import Pmu
 from synchrophasor.pdc import Pdc
 from synchrophasor.frame import DataFrame
+import sys
 
+exec_type, pmuID, pmu_ip, port, buffer_size, setTS = sys.argv[1:7]
 
-def runPMU():
-    pmu = Pmu(ip="127.0.0.1", port=1410)
+if exec_type == "PMU":
+    pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
 
     pmu.set_configuration()  # This will load default PMU configuration specified in IEEE C37.118.2 -Annex D (Table D.2)
-    pmu.set_header()  # This will load default header message "Hello I'm tinyPMU!"
+    pmu.set_header()
 
     pmu.run()  # PMU starts listening for incoming connections
-
+    # setPDC(pmuID,pmu_ip,port)
     while True:
         if pmu.clients:  # Check if there is any connected PDCs
             pmu.send(pmu.ieee_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 -Annex D (Table D.1)
 
     pmu.join()
 
-
-def runPDC(pdcID, ip, port):
-    pdc = Pdc(pdc_id=pdcID, pmu_ip=ip, pmu_port=port)
+if exec_type == "PDC":
+    pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port))
     pdc.logger.setLevel("DEBUG")
     pdc.run()  # Connect to PMU
 
