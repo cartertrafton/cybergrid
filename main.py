@@ -22,9 +22,9 @@ def reset_sim():
 
 # exit program
 def exit_sim():
-	print("Exiting CyberGrid...")
-	root.quit()
-	root.destroy()
+    print("Exiting CyberGrid...")
+    root.quit()
+    root.destroy()
 
 
 # switch power source
@@ -111,17 +111,16 @@ print("Starting CyberGrid...")
 
 pmuDataDisplay(PMU_frame).pack(side="top", fill="both", expand=True)
 
-
 # cybergrid sim begin
 
 
 #### main tkinter loop
 # root.mainloop()			# scrapped until can understand mainloop
 while True:
-	# get data and update node statuses
+    # get data and update node statuses
 
-	try:
-		root.update_idletasks()
-		root.update()				# update the GUI
-	except:
-		exit()
+    try:
+        root.update_idletasks()
+        root.update()  # update the GUI
+    except:
+        exit()
