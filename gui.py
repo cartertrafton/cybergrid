@@ -110,6 +110,7 @@ button5.place(relx=0.2, rely=0.8, relwidth=0.6, relheight=0.2)
 print("Starting CyberGrid...")
 
 pmuDataDisplay(PMU_frame).pack(side="top", fill="both", expand=True)
+systemMapDisplay(map_frame).pack(side="top", fill="both", expand=True)
 
 # cybergrid sim begin
 
