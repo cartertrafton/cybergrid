@@ -19,4 +19,3 @@ proc1 = sp.Popen(pmuCall1, shell=True)
 proc2 = sp.Popen(pdcCall1, shell=True)
 proc3 = sp.Popen(pmuCall2, shell=True)
 proc4 = sp.Popen(pdcCall2, shell=True)
-
