@@ -8,6 +8,7 @@
 
 import tkinter as tk
 from pmuFrame import pmuDataDisplay
+from mapFrame import systemMapDisplay
 
 HEIGHT = 800
 WIDTH = 1200
@@ -55,39 +56,39 @@ background_label.place(relwidth=1, relheight=1)
 #### frames
 # node status frame
 node_frame = tk.Frame(root, bg='white')
-node_frame.place(relx=0.025, rely=0.15, relwidth=0.45, relheight=0.35)
+node_frame.place(relx=0.025, rely=0.25, relwidth=0.45, relheight=0.30)
 # PMU data frame
 PMU_frame = tk.Frame(root, bg='white', bd=5)
-PMU_frame.place(relx=0.525, rely=0.15, relwidth=0.45, relheight=0.35)
+PMU_frame.place(relx=0.525, rely=0.25, relwidth=0.45, relheight=0.30)
 # network map frame
 map_frame = tk.Frame(root, bg='white', bd=5)
-map_frame.place(relx=0.025, rely=0.55, relwidth=0.45, relheight=0.35)
+map_frame.place(relx=0.025, rely=0.65, relwidth=0.45, relheight=0.30)
 # attack simulator frame
 attack_frame = tk.Frame(root, bg='white', bd=5)
-attack_frame.place(relx=0.525, rely=0.55, relwidth=0.45, relheight=0.35)
+attack_frame.place(relx=0.525, rely=0.65, relwidth=0.45, relheight=0.30)
 
 #### labels
 # frame labels
 label1 = tk.Label(root, text="CONTROL CENTER", bg='gray', font=('consolas', 25))
 label1.place(relx=0.025, y=25, relwidth=0.3, relheight=0.1)
-label2 = tk.Label(node_frame, text="Nodes", bg='white', anchor='w', font=('consolas', 20, 'underline'))
-label2.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
-label3 = tk.Label(PMU_frame, text="PMU", bg='white', anchor='w', font=('consolas', 20, 'underline'))
-label3.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
-label4 = tk.Label(map_frame, text="Map", bg='white', anchor='w', font=('consolas', 20, 'underline'))
-label4.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
-label5 = tk.Label(attack_frame, text="Attack Simulator", bg='white', anchor='w', font=('consolas', 20, 'underline'))
-label5.place(x=25, rely=0.05, relwidth=0.5, relheight=0.1)
+label2 = tk.Label(root, text="Nodes", bg='gray', anchor='w', font=('consolas', 20, 'underline'))
+label2.place(relx=0.025, rely=0.15, relwidth=0.5, relheight=0.1)
+label3 = tk.Label(root, text="PMU", bg='gray', anchor='w', font=('consolas', 20, 'underline'))
+label3.place(relx=0.525, rely=0.15, relwidth=0.5, relheight=0.1)
+label4 = tk.Label(root, text="Map", bg='gray', anchor='w', font=('consolas', 20, 'underline'))
+label4.place(relx=0.025, rely=0.55, relwidth=0.5, relheight=0.1)
+label5 = tk.Label(root, text="Attack Simulator", bg='gray', anchor='w', font=('consolas', 20, 'underline'))
+label5.place(relx=0.525, rely=0.55, relwidth=0.5, relheight=0.1)
 
 # node status & time labels
 label6 = tk.Label(node_frame, text="1: STATUS: ", bg='white', font=('consolas', 20))
-label6.place(relx=0.025, rely=0.2, relwidth=0.5, relheight=0.1)
+label6.place(relx=0.025, rely=0.1, relwidth=0.5, relheight=0.1)
 label7 = tk.Label(node_frame, text="   TIME: ", bg='white', font=('consolas', 20))
-label7.place(relx=0.025, rely=0.4, relwidth=0.5, relheight=0.1)
+label7.place(relx=0.025, rely=0.3, relwidth=0.5, relheight=0.1)
 label8 = tk.Label(node_frame, text="2: STATUS: ", bg='white', font=('consolas', 20))
-label8.place(relx=0.025, rely=0.6, relwidth=0.5, relheight=0.1)
+label8.place(relx=0.025, rely=0.5, relwidth=0.5, relheight=0.1)
 label9 = tk.Label(node_frame, text="   TIME: ", bg='white', font=('consolas', 20))
-label9.place(relx=0.025, rely=0.8, relwidth=0.5, relheight=0.1)
+label9.place(relx=0.025, rely=0.7, relwidth=0.5, relheight=0.1)
 
 #### buttons
 # reset
@@ -98,13 +99,13 @@ button2 = tk.Button(root, text="EXIT", font=('consolas', 20), bg='white', fg='re
 button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
 # power source
 button3 = tk.Button(attack_frame, text="POWER SPOOF", font=('consolas', 20), fg='red', command=switch_power_source)
-button3.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.2)
+button3.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.2)
 # gps source
 button4 = tk.Button(attack_frame, text="GPS SPOOF", font=('consolas', 20), fg='red', command=switch_gps_source)
-button4.place(relx=0.2, rely=0.5, relwidth=0.6, relheight=0.2)
+button4.place(relx=0.2, rely=0.4, relwidth=0.6, relheight=0.2)
 # cybergrid activate/deactivate
 button5 = tk.Button(attack_frame, text="DISABLE CYBERGRID", font=('consolas', 20), fg='red', command=disable_cybergrid)
-button5.place(relx=0.2, rely=0.8, relwidth=0.6, relheight=0.2)
+button5.place(relx=0.2, rely=0.7, relwidth=0.6, relheight=0.2)
 
 #### pre mainloop
 print("Starting CyberGrid...")
