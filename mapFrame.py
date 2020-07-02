@@ -25,23 +25,26 @@ class systemMapDisplay(tk.Frame):
 
         # create map nodes & labels
         self.node2 = self.canvas.create_rectangle(100, 50, 250, 100, fill="white")
-        self.node2_label = self.canvas.create_text(125, 75, text="Node 2")
+        self.node2_label = self.canvas.create_text(150, 75, text="Node 2")
         self.node1 = self.canvas.create_rectangle(100, 110, 250, 160, fill="white")
-        self.node1_label = self.canvas.create_text(125, 135, text="Node 1")
+        self.node1_label = self.canvas.create_text(150, 135, text="Node 1")
         self.Control_center_node = self.canvas.create_rectangle(300, 50, 450, 150, fill="white")
-        self.Control_center_node_label = self.canvas.create_text(350, 100, text="Control Center")
+        self.Control_center_node_label = self.canvas.create_text(375, 100, text="Control Center")
         self.PMU_node = self.canvas.create_rectangle(200, 175, 400, 225, fill="white")
         self.PMU_node_label = self.canvas.create_text(300, 200, text="PMU")
 
         self.gps_label = self.canvas.create_text(30, 140, text="GPS")
-        self.attack_label = self.canvas.create_text(30, 190, text="ATTACK")
+        self.attack_label = self.canvas.create_text(30, 180, text="ATTACK")
 
         self.update_map()
 
     def update_map(self):
         # check node status 1
+        # update
         # check node status 2
+        # update
         # check PMU verification
+        # update
         print("test")
         return
 

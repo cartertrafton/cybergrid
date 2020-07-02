@@ -16,6 +16,8 @@ class pmuDataDisplay(tk.Frame):
         self.update_plot()
 
     def update_plot(self):
+        # update the plot
+
         lev = random.randint(0, 200)
         self.add_point(self.level_line, lev)
         self.canvas.xview_moveto(1.0)
@@ -23,7 +25,7 @@ class pmuDataDisplay(tk.Frame):
 
     def add_point(self, line, y):
         coords = self.canvas.coords(line)
-        x = coords[-2] + 1
+        x = coords[-2] + 10
         coords.append(x)
         coords.append(y)
         coords = coords[-800:]  # keep # of points to a manageable size
