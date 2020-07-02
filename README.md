@@ -27,8 +27,6 @@ Designed for WIT 2020 Computer Engineering Senior Design Project.
 
 ## Acknowledgments
 
-*To be added...*
-
 * S. Sandi, T. Popovic, "pyPMU – Open Source Python Package for Synchrophasor Data Transfer", 
     IEEE 24th Telecommunications Forum (TELFOR), Belgrade, Serbia, Nov 22-23
 
