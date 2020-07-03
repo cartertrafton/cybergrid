@@ -9,35 +9,36 @@ import tkinter as tk
 from gui import GUI
 
 
-def cg():
-    print("here it is, here is cybergrid:")
-    print(".-'^`\                                        /`^'-.")
-    print(".'   ___\                                      /___   `.")
-    print("/    /.---.                                    .---.\    ")
-    print("|    //     '-.  ___________________________ .-'     \    |")
-    print("|   ;|         \/--------------------------//         |;   |")
-    print("\   ||       |\_)                          (_/|       ||   /")
-    print("\  | \  . \ ;  |                          || ; / .  / |  /")
-    print("'\_\ \ \ \ \ |          CyberGrid       ||/ / / // /_/'")
-    print("    \ \ \ \|                          |/ / / /")
-    print("     `'-\_\_\                          /_/_/-'`")
-    print("            '--------------------------'")
+
+def welcome_cg():
+    print("Welcome to...")
+    print("   _______     ______  ______ _____   _____ _____  _____ _____")
+    print("  / ____\ \   / /  _ \|  ____|  __ \ / ____|  __ \|_   _|  __ \ ")
+    print(" | |     \ \_/ /| |_) | |__  | |__) | |  __| |__) | | | | |  | |")
+    print(" | |      \   / |  _ <|  __| |  _  /| | |_ |  _  /  | | | |  | |")
+    print(" | |____   | |  | |_) | |____| | \ \| |__| | | \ \ _| |_| |__| |")
+    print("  \_____|  |_|  |____/|______|_|  \_\\_____|_|  \_\_____|_____/ \n\n")
     return
+
+
 
 
 if __name__ == "__main__":
 
     #### pre mainloop
     print("Starting CyberGrid...\n\n")
+    welcome_cg()
 
-    cg()
 
     #### tkinter setup
     root = tk.Tk()
     root.title('CyberGrid')
 
     #### creating GUI
-    GUI(root).pack(side="top", fill="both", expand=True)
+
+    gui = GUI(root)
+    gui.pack(side="top", fill="both", expand=True)
+
     while True:
 
         try:

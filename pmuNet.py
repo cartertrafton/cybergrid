@@ -16,7 +16,7 @@ if exec_type == "PMU":
     # setPDC(pmuID,pmu_ip,port)
     while True:
         if pmu.clients:  # Check if there is any connected PDCs
-            pmu.send_data(pmu.dynamic_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 -Annex D (Table D.1)
+            pmu.send(pmu.ieee_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 -Annex D (Table D.1)
 
     pmu.join()
 

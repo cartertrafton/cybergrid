@@ -1,5 +1,6 @@
 import subprocess as sp
 import sys
+import keyboard
 import time
 
 # def pmuParse(inpString):
@@ -43,6 +44,11 @@ while True:
         proc1.kill()
         proc3.kill()
     except KeyboardInterrupt:
+        proc1.stdout.close()
+        proc3.stdout.close()
+        proc1.kill()
+        proc3.kill()
+    except:
         proc1.stdout.close()
         proc3.stdout.close()
         proc1.kill()
