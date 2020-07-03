@@ -16,7 +16,7 @@ if exec_type == "PMU":
     # setPDC(pmuID,pmu_ip,port)
     while True:
         if pmu.clients:  # Check if there is any connected PDCs
-            pmu.send_data(pmu.dynamic_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 -Annex D (Table D.1)
+            pmu.send(pmu.ieee_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 -Annex D (Table D.1)
 
     pmu.join()
 
@@ -29,10 +29,7 @@ if exec_type == "PDC":
         config = pdc.get_config()  # Get configuration from PMU
     except BrokenPipeError as e:
             pdc.quit()
-            pdc.logger.setLevel("DEBUG")
-            pdc.run()  # Connect to PMU
-            header = pdc.get_header()  # Get header message from PMU
-            config = pdc.get_config()  # Get configuration from PMU
+            sys.exit()
 
     pdc.start()  # Request to start sending measurements
 
