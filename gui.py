@@ -86,9 +86,14 @@ class GUI(tk.Frame):
 
 
         #### pack system map and PMU data into frames
-        pmuDataDisplay(self.PMU_frame).pack(side="top", fill="both", expand=True)
-        systemMapDisplay(self.map_frame).pack(side="top", fill="both", expand=True)
+        self.pmuDisplay = pmuDataDisplay(self.PMU_frame)
+        self.pmuDisplay.pack(side="top", fill="both", expand=True)
+        self.pmuDisplay= systemMapDisplay(self.map_frame)
+        self.pmuDisplay.pack(side="top", fill="both", expand=True)
 
+    def update_gui(self):
+        print("updating GUI")
+        return
 
 #### functions
 # reset program
