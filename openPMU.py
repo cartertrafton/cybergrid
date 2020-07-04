@@ -23,7 +23,7 @@ proc3 = sp.Popen(pdcCall1, shell=True, stdout=sp.PIPE)
 #proc2 = sp.Popen(pmuCall2, shell=True, stdout=sp.PIPE)
 
 #proc4 = sp.Popen(pdcCall2, shell=True, stdout=sp.PIPE,)
-sniff = ptpSniffer('enp3s0')
+#sniff = ptpSniffer('enp3s0')
 
 while True:
     try:
@@ -35,7 +35,7 @@ while True:
         if output:
             print(output.strip())
         rc = proc3.poll()
-        sniff.capture()
+        #sniff.capture()
     except BrokenPipeError:
         proc1.stdout.close()
         proc3.stdout.close()
