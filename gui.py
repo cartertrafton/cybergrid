@@ -100,9 +100,9 @@ class GUI(tk.Frame):
 #### functions
 # reset program
 def reset_sim(self):
-    self.gps_status = True
-    self.power_status = True
-    self.cybergrid_status = True
+    self.gps_status = False
+    self.power_status = False
+    self.cybergrid_status = False
     return
 
 

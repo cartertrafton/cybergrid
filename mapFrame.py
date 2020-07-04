@@ -10,6 +10,7 @@ class SystemMapDisplay(tk.Frame):
 
         # render nodes and labels
         self.nodes_labels()
+        self.update_map(True, True, True)
 
     def nodes_labels(self):
         ##### map nodes & labels
