@@ -29,22 +29,21 @@ if __name__ == "__main__":
     print("Starting CyberGrid...\n\n")
     welcome_cg()
 
-
     #### tkinter setup
     root = tk.Tk()
     root.title('CyberGrid')
 
     #### creating GUI
-
     gui = GUI(root)
     gui.pack(side="top", fill="both", expand=True)
 
     while True:
-
         try:
             #### GUI updating
             root.update_idletasks()
             root.update()  # update the GUI
+            gui.update_GUI()
+
         except:
             exit()
 

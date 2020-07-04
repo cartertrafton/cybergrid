@@ -2,7 +2,7 @@ import tkinter as tk
 import random
 
 
-class pmuDataDisplay(tk.Frame):
+class PmuDataDisplay(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
 
@@ -13,15 +13,16 @@ class pmuDataDisplay(tk.Frame):
 
         # create line for graph
         self.level_line = self.canvas.create_line(0, 0, 0, 0, fill="red")
+
         self.update_plot()
 
     def update_plot(self):
         # update the plot
-
+        #print("updating pmu")
         lev = random.randint(0, 200)
         self.add_point(self.level_line, lev)
         self.canvas.xview_moveto(1.0)
-        self.after(100, self.update_plot)
+        return
 
     def add_point(self, line, y):
         coords = self.canvas.coords(line)
@@ -31,4 +32,4 @@ class pmuDataDisplay(tk.Frame):
         coords = coords[-800:]  # keep # of points to a manageable size
         self.canvas.coords(line, *coords)
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
+        return
