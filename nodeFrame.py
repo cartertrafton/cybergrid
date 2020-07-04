@@ -17,14 +17,22 @@ class NodeDataDisplay(tk.Frame):
         self.status_label2.place(relx=0.025, rely=0.5, relwidth=0.5, relheight=0.1)
         self.time_label2 = tk.Label(self.canvas, text="   TIME: ", bg='white', font=('consolas', 20))
         self.time_label2.place(relx=0.025, rely=0.7, relwidth=0.5, relheight=0.1)
+        self.status1 = tk.Label(self.canvas, text="ACTIVE", bg='white', fg='blue', anchor='w', font=('consolas', 20))
+        self.status2 = tk.Label(self.canvas, text="ACTIVE", bg='white', fg='blue', anchor='w', font=('consolas', 20))
+        self.status1.place(relx=0.5, rely=0.1, relwidth=0.4, relheight=0.1)
+        self.status2.place(relx=0.5, rely=0.5, relwidth=0.4, relheight=0.1)
 
+    def update_status(self, status):
+        # update the statuses
+        if status:
+            self.status1 = tk.Label(self.canvas, text="ACTIVE", bg='white', fg='blue', anchor='w', font=('consolas', 20))
+            self.status2 = tk.Label(self.canvas, text="ACTIVE", bg='white', fg='blue', anchor='w', font=('consolas', 20))
+        else:
+            self.status1 = tk.Label(self.canvas, text="DISABLED", bg='white', fg='RED', anchor='w', font=('consolas', 20))
+            self.status2 = tk.Label(self.canvas, text="DISABLED", bg='white', fg='RED', anchor='w', font=('consolas', 20))
 
-        # create line for graph
-        self.update_status()
+        self.status1.place(relx=0.5, rely=0.1, relwidth=0.4, relheight=0.1)
+        self.status2.place(relx=0.5, rely=0.5, relwidth=0.4, relheight=0.1)
 
-    def update_status(self):
-        # update the plot
-        #print("updating nodes")
-        temp = 0
         return
 

@@ -6,6 +6,7 @@
 # wit 2020 - senior design
 #
 import tkinter as tk
+import random
 from gui import GUI
 
 
@@ -36,6 +37,8 @@ if __name__ == "__main__":
     #### creating GUI
     gui = GUI(root)
     gui.pack(side="top", fill="both", expand=True)
+    gui.update_GUI()
+
 
     while True:
         try:

@@ -11,6 +11,7 @@
 #
 
 import tkinter as tk
+import random
 from pmuFrame import PmuDataDisplay
 from mapFrame import SystemMapDisplay
 from nodeFrame import NodeDataDisplay
@@ -31,6 +32,7 @@ class GUI(tk.Frame):
         self.gps_status = True
         self.power_status = True
         self.cybergrid_status = True
+        self.change = False
 
         #### frames
         # node status frame
@@ -86,9 +88,11 @@ class GUI(tk.Frame):
         self.button5.place(relx=0.2, rely=0.7, relwidth=0.6, relheight=0.2)
 
     def update_GUI(self):
-        self.pmuDisplay.update_plot()
-        self.nodeDisplay.update_status()
-        self.mapDisplay.update_map(self.gps_status, self.power_status, self.cybergrid_status)
+        self.pmuDisplay.update_plot(random.randint(0, 200))
+        if self.change:
+            self.nodeDisplay.update_status(self.cybergrid_status)
+            self.mapDisplay.update_map(self.gps_status, self.power_status, self.cybergrid_status)
+            self.change = False
 
         return
 
@@ -113,6 +117,7 @@ def exit_sim(parent):
 # switch power source
 def switch_power_source(self):
     self.power_status = not self.power_status
+    self.change = True
     return
 
 
@@ -120,11 +125,13 @@ def switch_power_source(self):
 def switch_gps_source(self):
     #print("switching GPS sources...")
     self.gps_status = not self.gps_status
+    self.change = True
     return
 
 
 # cybergrid activate/deactivate
 def disable_cybergrid(self):
     self.cybergrid_status = not self.cybergrid_status
+    self.change = True
     return
 

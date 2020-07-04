@@ -14,12 +14,9 @@ class PmuDataDisplay(tk.Frame):
         # create line for graph
         self.level_line = self.canvas.create_line(0, 0, 0, 0, fill="red")
 
-        self.update_plot()
-
-    def update_plot(self):
+    def update_plot(self, lev):
         # update the plot
         #print("updating pmu")
-        lev = random.randint(0, 200)
         self.add_point(self.level_line, lev)
         self.canvas.xview_moveto(1.0)
         return
