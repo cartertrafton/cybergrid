@@ -4,9 +4,7 @@ from synchrophasor.pdc import Pdc
 from synchrophasor.frame import DataFrame
 import random
 import sys
-
-exec_type, pmuID, pmu_ip, port, buffer_size, setTS = sys.argv[1:7]
-
+from time import sleep
 cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        1000000,  # TIME_BASE
                        1,  # Number of PMUs included in data frame
@@ -42,7 +40,7 @@ def phaseIncrem(lastAng): # increments phase angle value (in radians)
     return lastAng
 
 
-if exec_type == "PMU":
+def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
     pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
 
     pmu.set_configuration(cybergridCfg)  # This will load PMU configuration specified in IEEE C37.118.2 -Annex D (Table D.2)
@@ -53,24 +51,20 @@ if exec_type == "PMU":
     pmu.run()  # PMU starts listening for incoming connections
     # setPDC(pmuID,pmu_ip,port)
     while True:
-        try:
-            if pmu.clients:  # Check if there is any connected PDCs
-                phaseAng1 = phaseIncrem(phaseAng1)
-                phaseAng2 = phaseIncrem(phaseAng2)
-                phaseAng3 = phaseIncrem(phaseAng3)
-                pmu.send_data(phasors=[(random.uniform(118.0, 122.0), phaseAng1),
-                                       (random.uniform(118.0, 122.0), phaseAng2),
-                                       (random.uniform(118.0, 122.0), phaseAng3)],
-                              analog=[9.91],
-                              digital=[0x0001])
-
-        except OSError:
-            print("error occured\n")
-            sys.exit()
+        if pmu.clients:  # Check if there is any connected PDCs
+            phaseAng1 = phaseIncrem(phaseAng1)
+            phaseAng2 = phaseIncrem(phaseAng2)
+            phaseAng3 = phaseIncrem(phaseAng3)
+            pmu.send_data(phasors=[(random.uniform(118.0, 122.0), phaseAng1),
+                                   (random.uniform(118.0, 122.0), phaseAng2),
+                                   (random.uniform(118.0, 122.0), phaseAng3)],
+                          analog=[9.91],
+                          digital=[0x0001])
 
     pmu.join()
-if exec_type == "PDC":
-    pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port))
+
+def pdcThread(pmuID, pmu_ip, port, buffSize):
+    pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port),buffer_size=buffSize)
     pdc.logger.setLevel("DEBUG")
     pdc.run()  # Connect to PMU
     try:

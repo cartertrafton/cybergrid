@@ -2,7 +2,7 @@ import subprocess as sp
 import sys
 import _thread as t
 from ptpSniffer import ptpSniffer
-
+import time
 if sys.platform == "linux":
     print("linux")
     cmdP = 'gnome-terminal -e'
@@ -17,6 +17,7 @@ pmuCall2 = cmdP + ' "python3 pmuNet.py PMU 2 localhost 1420 2048 true"'
 pdcCall2 = cmdP + ' "python3 pmuNet.py PDC 2 localhost 1420 2048 true"'
 
 proc1 = sp.Popen(pmuCall1, shell=True, stdout=sp.PIPE)
+time.sleep(0.1)
 proc3 = sp.Popen(pdcCall1, shell=True, stdout=sp.PIPE)
 
 
