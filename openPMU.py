@@ -16,27 +16,33 @@ pdcCall1 = 'python3 pmuNet.py PDC 1 localhost 1410 2048 true'
 pmuCall2 = cmdP + ' "python3 pmuNet.py PMU 2 localhost 1420 2048 true"'
 pdcCall2 = cmdP + ' "python3 pmuNet.py PDC 2 localhost 1420 2048 true"'
 
-proc1 = sp.Popen(pmuCall1, shell=True, stdout=sp.PIPE)
+proc1 = sp.Popen(pmuCall1, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
 time.sleep(0.1)
-proc3 = sp.Popen(pdcCall1, shell=True, stdout=sp.PIPE)
+proc3 = sp.Popen(pdcCall1, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
 
 
 #proc2 = sp.Popen(pmuCall2, shell=True, stdout=sp.PIPE)
 
 #proc4 = sp.Popen(pdcCall2, shell=True, stdout=sp.PIPE,)
-#sniff = ptpSniffer('enp3s0')
+sniff = ptpSniffer('enp3s0')
 
 while True:
     try:
 
         output = proc3.stdout.readline()
-
+        error = proc3.stderr.readline()
         if output == '' and proc3.poll() is not None:
             break
         if output:
             print(output.strip())
+        if error:
+            proc1.stdout.close()
+            proc3.stdout.close()
+            proc1.kill()
+            proc3.kill()
+            sys.exit()
         rc = proc3.poll()
-        #sniff.capture()
+        sniff.capture()
     except BrokenPipeError:
         proc1.stdout.close()
         proc3.stdout.close()
@@ -48,3 +54,4 @@ while True:
         proc3.stdout.close()
         proc1.kill()
         proc3.kill()
+        sys.exit()
