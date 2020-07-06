@@ -4,8 +4,8 @@ import _thread as t
 from ptpSniffer import ptpSniffer
 import time
 
-pmuCall1 = 'python3 pmuNet.py PMU 1 localhost 1410 2048 true'
-pdcCall1 = 'python3 pmuNet.py PDC 1 localhost 1410 2048 true'
+pmuCall1 = 'python3 pmuNet.py PMU 1 localhost 1410 512 true'
+pdcCall1 = 'python3 pmuNet.py PDC 1 localhost 1410 512 true'
 
 proc1 = sp.Popen(pmuCall1, shell=True, stdout=sp.PIPE)
 time.sleep(0.1)

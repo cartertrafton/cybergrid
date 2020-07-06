@@ -36,16 +36,15 @@ class ptpSniffer(object):
 
                 packData.printPackInfo()
 
-
-class ptpError(BaseException):
-    pass
+#
+# class ptpError(BaseException):
+#     pass
 
 
 class ptpPacketData(object):
 
     # Creates an object containing relevant PTP packet information
     def __init__(self, source, messageid, sequenceid, seconds_timestamp, seconds_nanoseconds, correction):
-        self.mesType = None
         self.sourceIP = source
         self.mesType = messageid
         self.s_timestamp = seconds_timestamp

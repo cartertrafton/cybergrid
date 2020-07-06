@@ -10,7 +10,7 @@ exec_type, pmuID, pmu_ip, port, buffer_size, setTS = sys.argv[1:7]
 cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        1000000,  # TIME_BASE
                        1,  # Number of PMUs included in data frame
-                       "Random Station",  # Station name
+                       "Microgrid Station",  # Station name
                        1410,  # Data-stream ID(s)
                        (True, True, True, True),  # Data format - POLAR; PH - REAL; AN - REAL; FREQ - REAL;
                        3,  # Number of phasors
@@ -29,18 +29,23 @@ cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        1,  # Configuration change count
                        30)  # Rate of phasor data transmission)
 
+
 def phaseIncrem(lastAng): # increments phase angle value (in radians)
     lowerB = -3.142
     upperB = 3.142
     radDiff = 0.10466666667
 
     if lastAng + radDiff >= upperB:
-        lastAng = lowerB
+        lastAng = lastAng + radDiff + lowerB - upperB
     elif lastAng + radDiff >= lowerB:
         lastAng = lastAng + radDiff
 
     return lastAng
 
+
+cybergrid_data_sample = DataFrame(1, ("ok", True, "timestamp", False, False, False, 0, "<10", 0),
+                                          [(14635, 0), (-7318, -3.14), (-7318, 3.14)], 30, 0,
+                                          [100], [0x3c12], cybergridCfg)
 
 if exec_type == "PMU":
     pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
@@ -58,18 +63,19 @@ if exec_type == "PMU":
                 phaseAng1 = phaseIncrem(phaseAng1)
                 phaseAng2 = phaseIncrem(phaseAng2)
                 phaseAng3 = phaseIncrem(phaseAng3)
-                pmu.send_data(phasors=[(random.uniform(118.0, 122.0), phaseAng1),
-                                       (random.uniform(118.0, 122.0), phaseAng2),
-                                       (random.uniform(118.0, 122.0), phaseAng3)],
-                              analog=[9.91],
-                              digital=[0x0001])
+                cybergrid_data_sample.set_phasors([(120.0, phaseAng1), (120.0, phaseAng2), (120.0, phaseAng3)])
+                # pmu.send_data(phasors=[(120.0, 3.14),
+                #                        (120.0, 3.14),
+                #                        (120.0, 3.14)],
+                #               analog=[9.91],
+                #               digital=[0x0001])
+                pmu.send(cybergrid_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 - Annex D (Table D.1)
 
-        except OSError:
-            print("error occured\n")
+        except EnvironmentError as e:
+            print(e)
             sys.exit()
 
     pmu.join()
-
 
 if exec_type == "PDC":
     pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port))
