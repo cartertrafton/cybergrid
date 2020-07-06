@@ -8,11 +8,11 @@ class ptpSniffer(object):
     def __init__(self, interface):
         self.interface = 'enp3s0'
 
-    def capture(self):
+    def capture(self, packCount):
 
         global packData
         cap = pyshark.LiveCapture(interface=self.interface, display_filter='ptp')
-        cap.sniff(packet_count=5)
+        cap.sniff(packet_count=packCount)
 
         for pak in cap:
             if 'PTP' in pak:

@@ -69,6 +69,8 @@ if exec_type == "PMU":
             sys.exit()
 
     pmu.join()
+
+
 if exec_type == "PDC":
     pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port))
     pdc.logger.setLevel("DEBUG")
