@@ -11,7 +11,7 @@
 #
 
 import tkinter as tk
-import random
+import random, sys
 from pmuFrame import PmuDataDisplay
 from mapFrame import SystemMapDisplay
 from nodeFrame import NodeDataDisplay
@@ -29,8 +29,7 @@ class GUI(tk.Frame):
         self.background_label.place(relwidth=1, relheight=1)
 
         #### status tracking variables
-        self.gps_status = True
-        self.power_status = True
+        self.spoof_status = True
         self.cybergrid_status = True
         self.change = False
 
@@ -77,21 +76,20 @@ class GUI(tk.Frame):
         # exit
         self.button2 = tk.Button(parent, text="EXIT", font=('consolas', 20), bg='white', fg='red', command=lambda: exit_sim(parent))
         self.button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
-        # power source
-        self.button3 = tk.Button(self.attack_frame, text="POWER SPOOF", font=('consolas', 20), fg='red', command=lambda: switch_power_source(self))
-        self.button3.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.2)
-        # gps source
-        self.button4 = tk.Button(self.attack_frame, text="GPS SPOOF", font=('consolas', 20), fg='red', command=lambda: switch_gps_source(self))
-        self.button4.place(relx=0.2, rely=0.4, relwidth=0.6, relheight=0.2)
+        # spoof
+        self.button4 = tk.Button(self.attack_frame, text="SPOOF ATTACK", font=('consolas', 20), fg='red', command=lambda: spoof_attack(self))
+        self.button4.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.2)
         # cybergrid activate/deactivate
         self.button5 = tk.Button(self.attack_frame, text="DISABLE CYBERGRID", font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
-        self.button5.place(relx=0.2, rely=0.7, relwidth=0.6, relheight=0.2)
+        self.button5.place(relx=0.2, rely=0.5, relwidth=0.6, relheight=0.2)
 
     def update_GUI(self):
-        self.pmuDisplay.update_plot(random.randint(0, 200))
+        self.pmuDisplay.update_plot(random.randint(25, 75), self.spoof_status, self.cybergrid_status)
+        self.nodeDisplay.update_time()
         if self.change:
-            self.nodeDisplay.update_status(self.cybergrid_status)
-            self.mapDisplay.update_map(self.gps_status, self.power_status, self.cybergrid_status)
+            self.nodeDisplay.update_ptp_status(self.cybergrid_status)
+            self.nodeDisplay.update_pmu_status(self.spoof_status, self.cybergrid_status)
+            self.mapDisplay.update_map(self.spoof_status, self.cybergrid_status)
             self.change = False
 
         return
@@ -100,9 +98,10 @@ class GUI(tk.Frame):
 #### functions
 # reset program
 def reset_sim(self):
-    self.gps_status = False
-    self.power_status = False
-    self.cybergrid_status = False
+    self.gps_status = True
+    self.power_status = True
+    self.cybergrid_status = True
+    self.change = True
     return
 
 
@@ -111,20 +110,15 @@ def exit_sim(parent):
     print("Exiting CyberGrid...")
     parent.quit()
     parent.destroy()
+    sys.exit()
     return
 
 
-# switch power source
-def switch_power_source(self):
-    self.power_status = not self.power_status
-    self.change = True
-    return
 
-
-# switch GPS source
-def switch_gps_source(self):
+# spoof attack
+def spoof_attack(self):
     #print("switching GPS sources...")
-    self.gps_status = not self.gps_status
+    self.spoof_status = not self.spoof_status
     self.change = True
     return
 

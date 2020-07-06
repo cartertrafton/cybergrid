@@ -14,10 +14,12 @@ class PmuDataDisplay(tk.Frame):
         # create line for graph
         self.level_line = self.canvas.create_line(0, 0, 0, 0, fill="red")
 
-    def update_plot(self, lev):
+    def update_plot(self, lev, spoof_status, cybergrid_status):
         # update the plot
-        #print("updating pmu")
-        self.add_point(self.level_line, lev)
+        if not spoof_status and not cybergrid_status:
+            self.add_point(self.level_line, random.randint(0, 200))
+        else:
+            self.add_point(self.level_line, lev)
         self.canvas.xview_moveto(1.0)
         return
 
