@@ -4,7 +4,7 @@ from synchrophasor.pdc import Pdc
 from synchrophasor.frame import DataFrame
 import random
 import sys
-
+from time import sleep
 exec_type, pmuID, pmu_ip, port, buffer_size, setTS = sys.argv[1:7]
 
 cybergridCfg = ConfigFrame2(1410,  # PMU_ID
@@ -27,7 +27,7 @@ cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        [(0x0000, 0xffff)],  # Mask words for digital status words
                        60,  # Nominal frequency
                        1,  # Configuration change count
-                       30)  # Rate of phasor data transmission)
+                       60)  # Rate of phasor data transmission)
 
 
 def phaseIncrem(lastAng): # increments phase angle value (in radians)
@@ -51,25 +51,28 @@ if exec_type == "PMU":
     pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
 
     pmu.set_configuration(cybergridCfg)  # This will load PMU configuration specified in IEEE C37.118.2 -Annex D (Table D.2)
-    pmu.set_header()
-    phaseAng1 = -1
+    phaseAng1 = -1.13
     phaseAng2 = 3.14/2
     phaseAng3 = -3.14
     pmu.run()  # PMU starts listening for incoming connections
     # setPDC(pmuID,pmu_ip,port)
     while True:
         try:
-            if pmu.clients:  # Check if there is any connected PDCs
-                phaseAng1 = phaseIncrem(phaseAng1)
-                phaseAng2 = phaseIncrem(phaseAng2)
-                phaseAng3 = phaseIncrem(phaseAng3)
-                cybergrid_data_sample.set_phasors([(120.0, phaseAng1), (120.0, phaseAng2), (120.0, phaseAng3)])
-                # pmu.send_data(phasors=[(120.0, 3.14),
-                #                        (120.0, 3.14),
-                #                        (120.0, 3.14)],
-                #               analog=[9.91],
-                #               digital=[0x0001])
-                pmu.send(cybergrid_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 - Annex D (Table D.1)
+            if pmu.clients:
+                if pmu.listener:  # Check if there is any connected PDCs
+                    sleep(1/pmu.cfg2.get_data_rate())
+                    print(phaseAng1, phaseAng2, phaseAng3)
+
+                    cybergrid_data_sample.set_phasors([(120.0, phaseAng1), (120.0, phaseAng2), (120.0, phaseAng3)])
+                    # pmu.send_data(phasors=[(120.0, 3.14),
+                    #                        (120.0, 3.14),
+                    #                        (120.0, 3.14)],
+                    #               analog=[9.91],
+                    #               digital=[0x0001])
+                    pmu.send(cybergrid_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 - Annex D (Table D.1)
+                    phaseAng1 = phaseIncrem(phaseAng1)
+                    phaseAng2 = phaseIncrem(phaseAng2)
+                    phaseAng3 = phaseIncrem(phaseAng3)
 
         except EnvironmentError as e:
             print(e)
@@ -85,8 +88,8 @@ if exec_type == "PDC":
         header = pdc.get_header()  # Get header message from PMU
         config = pdc.get_config()  # Get configuration from PMU
     except BrokenPipeError as e:
-            pdc.quit()
-            sys.exit()
+        pdc.quit()
+        sys.exit()
 
     pdc.start()  # Request to start sending measurements
 

@@ -8,7 +8,7 @@ from time import sleep
 cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        1000000,  # TIME_BASE
                        1,  # Number of PMUs included in data frame
-                       "Random Station",  # Station name
+                       "Microgrid Station",  # Station name
                        1410,  # Data-stream ID(s)
                        (True, True, True, True),  # Data format - POLAR; PH - REAL; AN - REAL; FREQ - REAL;
                        3,  # Number of phasors
@@ -25,7 +25,8 @@ cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        [(0x0000, 0xffff)],  # Mask words for digital status words
                        60,  # Nominal frequency
                        1,  # Configuration change count
-                       30)  # Rate of phasor data transmission)
+                       60)  # Rate of phasor data transmission)
+
 
 def phaseIncrem(lastAng): # increments phase angle value (in radians)
     lowerB = -3.142
@@ -33,12 +34,16 @@ def phaseIncrem(lastAng): # increments phase angle value (in radians)
     radDiff = 0.10466666667
 
     if lastAng + radDiff >= upperB:
-        lastAng = lowerB
+        lastAng = lastAng + radDiff + lowerB - upperB
     elif lastAng + radDiff >= lowerB:
         lastAng = lastAng + radDiff
 
     return lastAng
 
+
+cybergrid_data_sample = DataFrame(1, ("ok", True, "timestamp", False, False, False, 0, "<10", 0),
+                                          [(120, 0), (120.1, 3.14), (119.9, -3.14)], 30, 0,
+                                          [100], [0x3c12], cybergridCfg)
 
 def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
     pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
@@ -49,17 +54,25 @@ def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
     phaseAng2 = 3.14/2
     phaseAng3 = -3.14
     pmu.run()  # PMU starts listening for incoming connections
-    # setPDC(pmuID,pmu_ip,port)
+
     while True:
-        if pmu.clients:  # Check if there is any connected PDCs
-            phaseAng1 = phaseIncrem(phaseAng1)
-            phaseAng2 = phaseIncrem(phaseAng2)
-            phaseAng3 = phaseIncrem(phaseAng3)
-            pmu.send_data(phasors=[(random.uniform(118.0, 122.0), phaseAng1),
-                                   (random.uniform(118.0, 122.0), phaseAng2),
-                                   (random.uniform(118.0, 122.0), phaseAng3)],
-                          analog=[9.91],
-                          digital=[0x0001])
+        try:
+            if pmu.clients:  # Check if there is any connected PDCs
+                sleep(1/pmu.cfg2.get_data_rate())
+                cybergrid_data_sample.set_phasors([(120.0, phaseAng1), (120.0, phaseAng2), (120.0, phaseAng3)])
+                # pmu.send_data(phasors=[(120.0, 3.14),
+                #                        (120.0, 3.14),
+                #                        (120.0, 3.14)],
+                #               analog=[9.91],
+                #               digital=[0x0001])
+                pmu.send(cybergrid_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 - Annex D (Table D.1)
+                phaseAng1 = phaseIncrem(phaseAng1)
+                phaseAng2 = phaseIncrem(phaseAng2)
+                phaseAng3 = phaseIncrem(phaseAng3)
+        except EnvironmentError as e:
+            print(e)
+            sys.exit()
+
 
     pmu.join()
 
@@ -71,17 +84,20 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
         header = pdc.get_header()  # Get header message from PMU
         config = pdc.get_config()  # Get configuration from PMU
     except BrokenPipeError as e:
-            pdc.quit()
-            sys.exit()
+        pdc.quit()
+        sys.exit()
 
     pdc.start()  # Request to start sending measurements
 
     while True:
 
         data = pdc.get()  # Keep receiving data
-
+        if data is None:
+            data = pdc.get()  # Try again receiving data
         if type(data) == DataFrame:
-            print(data.get_measurements())
+            outData = data.get_measurements()
+
+            print(outData)
 
         if not data:
             pdc.quit()  # Close connection

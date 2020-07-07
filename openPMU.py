@@ -20,11 +20,12 @@ proc3 = sp.Popen(pdcCall1, shell=True, stdout=sp.PIPE)
 while True:
     try:
         output = proc3.stdout.readline()
+        o2 = proc1.stdout.readline()
 
         if output == '' and proc3.poll() is not None:
             break
         if output:
-            print(output.strip())
+            print(output.strip(),'\n\t',o2.strip())
         # if proc3.stderr.readline():
         #     proc1.stdout.close()
         #     proc3.stdout.close()
