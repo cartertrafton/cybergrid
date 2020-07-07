@@ -10,7 +10,7 @@ class SystemMapDisplay(tk.Frame):
 
         # render nodes and labels
         self.nodes_labels()
-        self.update_map(True, True, True)
+        self.update_map(True, True)
 
     def nodes_labels(self):
         ##### map nodes & labels
@@ -27,80 +27,44 @@ class SystemMapDisplay(tk.Frame):
         return
 
 
-    def update_map(self, gps_status, power_status, cybergrid_status):
+    def update_map(self, spoof_status, cybergrid_status):
         # state machine
-        # 111
-        if cybergrid_status and gps_status and power_status:
+        # 11
+        if cybergrid_status and spoof_status:
             self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="BLUE", width=10)
             self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GREEN", width=10)
+            self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GREEN", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="WHITE", width=10)
             self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="GREEN", width=10)
             self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="GREEN", width=10)
             self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="GREEN", width=10)
-        # 110
-        elif cybergrid_status and gps_status and not power_status:
+        # 10
+        elif cybergrid_status and not spoof_status:
             self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="BLUE", width=10)
             self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GREEN", width=10)
+            self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GREEN", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
             self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="RED", width=10)
             self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="RED", width=10)
             self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="RED", width=10)
-        # 101
-        elif cybergrid_status and not gps_status and power_status:
+        # 01
+        elif not cybergrid_status and spoof_status:
             self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="BLUE", width=10)
             self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
+            self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
             self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="RED", width=10)
             self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="RED", width=10)
             self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="RED", width=10)
-        # 100
-        elif cybergrid_status and not gps_status and not power_status:
+        # 00
+        elif not cybergrid_status and not spoof_status:
             self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="BLUE", width=10)
             self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
+            self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
             self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="RED", width=10)
             self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="RED", width=10)
             self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="RED", width=10)
-        # 011
-        elif not cybergrid_status and gps_status and power_status:
-            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="RED", width=10)
-            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="RED", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
-            self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="WHITE", width=10)
-            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="YELLOW", width=10)
-            self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="YELLOW", width=10)
-            self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="YELLOW", width=10)
-        # 010
-        elif not cybergrid_status and gps_status and not power_status:
-            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="RED", width=10)
-            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="RED", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
-            self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
-            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="YELLOW", width=10)
-            self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="YELLOW", width=10)
-            self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="YELLOW", width=10)
-        # 001
-        elif not cybergrid_status and not gps_status and power_status:
-            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="RED", width=10)
-            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="RED", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
-            self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="WHITE", width=10)
-            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="YELLOW", width=10)
-            self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="YELLOW", width=10)
-            self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="YELLOW", width=10)
-        # 000
-        elif not cybergrid_status and not gps_status and not power_status:
-            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="RED", width=10)
-            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="RED", width=10)
-            self.GPS_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
-            self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
-            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="YELLOW", width=10)
-            self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="YELLOW", width=10)
-            self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="YELLOW", width=10)
 
         # render nodes and labels over connections
         self.nodes_labels()
