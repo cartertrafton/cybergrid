@@ -1,44 +1,106 @@
 import pyshark
-import time
+
 from datetime import datetime
 
 
 class ptpSniffer(object):
 
-    def __init__(self, interface):
-        self.interface = 'enp3s0'
+    def __init__(self, interface=None, capfile=None):
+        self.interface = interface
+        self.captureFile = capfile
 
-    def capture(self, packCount):
+    def liveCapture(self, packcount = None, continuous = True):
 
-        global packData
         cap = pyshark.LiveCapture(interface=self.interface, display_filter='ptp')
-        cap.sniff(packet_count=packCount)
+        global packData
 
-        for pak in cap:
+        if not continuous:
+            cap.sniff(packet_count=packcount)
+
+            for pak in cap:
+                if 'PTP' in pak:
+                    ptpMessageType = int(pak.ptp.v2_control)
+                    if ptpMessageType == 5:
+                        packData = ptpPacketData(str(pak.ip.src), 'Announce', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_an_origintimestamp_seconds),
+                                                 int(pak.ptp.v2_an_origintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 0:
+                        packData = ptpPacketData(str(pak.ip.src), 'Sync', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 1:
+                        packData = ptpPacketData(str(pak.ip.src), 'Delay Request', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 3:
+                        packData = ptpPacketData(str(pak.ip.src), 'Delay Response', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_dr_receivetimestamp_seconds),
+                                                 int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+
+                packData.printPackInfo()
+
+
+        elif continuous:
+            for pak in cap.sniff_continuously():
+                if 'PTP' in pak:
+                    ptpMessageType = int(pak.ptp.v2_control)
+                    if ptpMessageType == 5:
+                        packData = ptpPacketData(str(pak.ip.src), 'Announce', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_an_origintimestamp_seconds),
+                                                 int(pak.ptp.v2_an_origintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 0:
+                        packData = ptpPacketData(str(pak.ip.src), 'Sync', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 1:
+                        packData = ptpPacketData(str(pak.ip.src), 'Delay Request', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                                 int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 3:
+                        packData = ptpPacketData(str(pak.ip.src), 'Delay Response', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_dr_receivetimestamp_seconds),
+                                                 int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
+
+                    packData.printPackInfo()
+
+
+    def fileCapture(self):
+        cap = pyshark.FileCapture(self.captureFile, keep_packets=False, display_filter='ptp')
+        global packData
+        for pak in cap.load_packets(packet_count=0):
             if 'PTP' in pak:
                 ptpMessageType = int(pak.ptp.v2_control)
                 if ptpMessageType == 5:
                     packData = ptpPacketData(str(pak.ip.src), 'Announce', int(pak.ptp.v2_sequenceId),
-                                  int(pak.ptp.v2_an_origintimestamp_seconds),
-                                  int(pak.ptp.v2_an_origintimestamp_nanoseconds), float(pak.ptp.v2_correction_ns))
-                if ptpMessageType== 0:
+                                             int(pak.ptp.v2_an_origintimestamp_seconds),
+                                             int(pak.ptp.v2_an_origintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
+                if ptpMessageType == 0:
                     packData = ptpPacketData(str(pak.ip.src), 'Sync', int(pak.ptp.v2_sequenceId),
-                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds), float(pak.ptp.v2_correction_ns))
+                                             int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                             int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
                 if ptpMessageType == 1:
                     packData = ptpPacketData(str(pak.ip.src), 'Delay Request', int(pak.ptp.v2_sequenceId),
-                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds), float(pak.ptp.v2_correction_ns))
+                                             int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                             int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
                 if ptpMessageType == 3:
                     packData = ptpPacketData(str(pak.ip.src), 'Delay Response', int(pak.ptp.v2_sequenceId),
-                                  int(pak.ptp.v2_dr_receivetimestamp_seconds),
-                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds), float(pak.ptp.v2_correction_ns))
+                                             int(pak.ptp.v2_dr_receivetimestamp_seconds),
+                                             int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
 
                 packData.printPackInfo()
-
-#
-# class ptpError(BaseException):
-#     pass
+                return packData
 
 
 class ptpPacketData(object):

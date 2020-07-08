@@ -4,8 +4,8 @@ import _thread as t
 from ptpSniffer import ptpSniffer
 import time
 
-pmuCall1 = 'python3 pmuNet.py PMU 1 localhost 1410 512 true'
-pdcCall1 = 'python3 pmuNet.py PDC 1 localhost 1410 512 true'
+pmuCall1 = 'python3 pmuNet.py PMU 1 localhost 1410 512 True'
+pdcCall1 = 'python3 pmuNet.py PDC 1 localhost 1410 512 True'
 
 proc1 = sp.Popen(pmuCall1, shell=True, stdout=sp.PIPE)
 time.sleep(0.1)
@@ -20,12 +20,12 @@ proc3 = sp.Popen(pdcCall1, shell=True, stdout=sp.PIPE)
 while True:
     try:
         output = proc3.stdout.readline()
-        o2 = proc1.stdout.readline()
+        #o2 = proc1.stdout.readline()
 
         if output == '' and proc3.poll() is not None:
             break
         if output:
-            print(output.strip(),'\n\t',o2.strip())
+            print(output.strip())
         # if proc3.stderr.readline():
         #     proc1.stdout.close()
         #     proc3.stdout.close()

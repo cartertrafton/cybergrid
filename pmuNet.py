@@ -61,7 +61,7 @@ if exec_type == "PMU":
             if pmu.clients:
                 if pmu.listener:  # Check if there is any connected PDCs
                     sleep(1/pmu.cfg2.get_data_rate())
-                    print(phaseAng1, phaseAng2, phaseAng3)
+                    #print(phaseAng1, phaseAng2, phaseAng3)
 
                     cybergrid_data_sample.set_phasors([(120.0, phaseAng1), (120.0, phaseAng2), (120.0, phaseAng3)])
                     # pmu.send_data(phasors=[(120.0, 3.14),
