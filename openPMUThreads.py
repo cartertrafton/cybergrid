@@ -2,35 +2,96 @@ import time
 import pmuThreads
 from threading import Thread
 from ptpSniffer import ptpSniffer, ptpPacketData
-
+#
+# class Cybernode(object):
 
 
 class PMUrun(Thread):
-    def __init__(self):
+    def __init__(self, pmuid, pmuip, port, buffsize, setTS):
+        self.pmu_id = pmuid
+        self.pmu_ip = pmuip
+        self.port = port
+        self.buff_size = buffsize
+        self.set_TS = setTS
+
         Thread.__init__(self)
         self.daemon = True
+        self.output = None
         self.start()
 
     def run(self):
-        print("Starting PMU 1\n")
-        pmuThreads.pmuThread(1, '127.0.0.1', 1410, 2048, True)
+        print("Starting PMU "+str(self.pmu_id)+"\n")
+        pmuThreads.pmuThread(self.pmu_id, self.pmu_ip, self.port, self.buff_size, self.set_TS)
 
 
 class PDCrun(Thread):
-    def __init__(self):
+
+    def __init__(self, pdcid, pdcip, port, buffsize):
+        self.pdc_id = pdcid
+        self.pdc_ip = pdcip
+        self.port = port
+        self.buff_size = buffsize
+        self.ts_buffer = list()
+        self.data_buffer = list()
         Thread.__init__(self)
         self.daemon = True
         self.start()
 
     def run(self):
-        print("Starting PDC 1\n")
-        pmuThreads.pdcThread(1, '127.0.0.1', 1410, 2048)
+        print("Starting PDC "+str(self.pdc_id)+"\n")
+        while True:
+            for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
+                self.ts_buffer.append(out['time'])
+                self.data_buffer.append((out['measurements']))
+               # print(out)
+
 
 
 ptpCapture = ptpSniffer('enp3s0')
-PMUrun()
+
+pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
+pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
 time.sleep(0.5)
-PDCrun()
-ptpCapture.liveCapture()
-while True:
-    pass
+pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
+pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
+
+fullSeq = [False, False, False, False]
+pdc1TSBuffer = []
+pdc1DataBuffer = []
+pdc2TSBuffer = []
+pdc2DataBuffer = []
+
+for pack in ptpCapture.liveCapture():
+
+    if pack.mesType == 'Sync':
+        fullSeq[1] = True
+        syncPak = pack
+    if pack.mesType == 'Announce':
+        fullSeq[0] = True
+        anncPak = pack
+    if pack.mesType == 'Delay Request':
+        fullSeq[2] = True
+        delreqPak = pack
+    if pack.mesType == 'Delay Response':
+        fullSeq[3] = True
+        delresPak = pack
+
+    if fullSeq == [True, True, True, True]:
+        anncPak.printPackInfo()
+        syncPak.printPackInfo()
+        delreqPak.printPackInfo()
+        delresPak.printPackInfo()
+        fullSeq = [False, False, False, False]
+
+        pdc1TSBuffer = pdc1.ts_buffer
+        pdc1DataBuffer = pdc1.data_buffer
+        print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer))
+        pdc1.ts_buffer.clear()
+        pdc1.data_buffer.clear()
+
+        pdc2TSBuffer = pdc2.ts_buffer
+        pdc2DataBuffer = pdc2.data_buffer
+        print('delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
+        pdc2.ts_buffer.clear()
+        pdc2.data_buffer.clear()
+

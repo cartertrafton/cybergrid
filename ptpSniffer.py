@@ -41,8 +41,8 @@ class ptpSniffer(object):
                                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
 
-                packData.printPackInfo()
-
+                #packData.printPackInfo()
+                yield packData
 
         elif continuous:
             for pak in cap.sniff_continuously():
@@ -69,7 +69,8 @@ class ptpSniffer(object):
                                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
 
-                    packData.printPackInfo()
+                    # packData.printPackInfo()
+                    yield packData
 
 
     def fileCapture(self):

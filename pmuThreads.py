@@ -45,6 +45,7 @@ cybergrid_data_sample = DataFrame(1, ("ok", True, "timestamp", False, False, Fal
                                           [(120, 0), (120.1, 3.14), (119.9, -3.14)], 30, 0,
                                           [100], [0x3c12], cybergridCfg)
 
+
 def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
     pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
 
@@ -76,6 +77,7 @@ def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
 
     pmu.join()
 
+
 def pdcThread(pmuID, pmu_ip, port, buffSize):
     pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port),buffer_size=buffSize)
     pdc.logger.setLevel("DEBUG")
@@ -96,9 +98,8 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
             data = pdc.get()  # Try again receiving data
         if type(data) == DataFrame:
             outData = data.get_measurements()
-
-            print(outData)
-
+            #print(outData)
+            yield outData
         if not data:
             pdc.quit()  # Close connection
             break
