@@ -7,7 +7,7 @@ Designed for WIT 2020 Computer Engineering Senior Design Project.
 
 ## Program Structure
 - ``main.py`` - Main program to run.
-- ``/gui/``
+- ``gui/``
     - ``gui.py`` - User Interface built with Tkinter.
     - ``mapFrame.py`` - Sub-frame that generates and updates System Map.
     - ``nodeFrame.py`` - Sub-frame for rendering and updates Node Statuses.
