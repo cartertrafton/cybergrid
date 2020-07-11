@@ -2,9 +2,16 @@ import time
 import pmuThreads
 from threading import Thread
 from ptpSniffer import ptpSniffer, ptpPacketData
+from operator import sub
 #
 # class Cybernode(object):
 
+# def findDiff(lista, listb):
+#     C = list()
+#     for i in range(0, len(lista)):
+#         diff = listb[i]-lista[i]
+#         C.append(diff)
+#     return C
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS):
@@ -51,7 +58,7 @@ ptpCapture = ptpSniffer('enp3s0')
 
 pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
 pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
-time.sleep(0.5)
+time.sleep(0.05)
 pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
 pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
 
@@ -60,7 +67,7 @@ pdc1TSBuffer = []
 pdc1DataBuffer = []
 pdc2TSBuffer = []
 pdc2DataBuffer = []
-
+tsDiff=[]
 for pack in ptpCapture.liveCapture():
 
     if pack.mesType == 'Sync':
@@ -83,15 +90,20 @@ for pack in ptpCapture.liveCapture():
         delresPak.printPackInfo()
         fullSeq = [False, False, False, False]
 
-        pdc1TSBuffer = pdc1.ts_buffer
-        pdc1DataBuffer = pdc1.data_buffer
-        print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer))
-        pdc1.ts_buffer.clear()
-        pdc1.data_buffer.clear()
 
-        pdc2TSBuffer = pdc2.ts_buffer
-        pdc2DataBuffer = pdc2.data_buffer
-        print('delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
+        if not (len(pdc1.ts_buffer) == 0 or len(pdc2.ts_buffer) == 0):
+            pdc1TSBuffer = pdc1.ts_buffer
+            pdc1DataBuffer = pdc1.data_buffer
+            pdc2TSBuffer = pdc2.ts_buffer
+            pdc2DataBuffer = pdc2.data_buffer
+            tsDiff.append((max(pdc2TSBuffer) - min(pdc2TSBuffer))-(max(pdc1TSBuffer) - min(pdc1TSBuffer)))
+            print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')
+            # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
+
+
+        # print(len(pdc2TSBuffer),len(pdc1TSBuffer))
         pdc2.ts_buffer.clear()
         pdc2.data_buffer.clear()
+        pdc1.ts_buffer.clear()
+        pdc1.data_buffer.clear()
 
