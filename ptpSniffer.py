@@ -76,7 +76,7 @@ class ptpSniffer(object):
     def fileCapture(self):
         cap = pyshark.FileCapture(self.captureFile, keep_packets=True, display_filter='ptp')
         global packData
-        for pak in cap.next():
+        for pak in cap:
             if 'PTP' in pak:
                 ptpMessageType = int(pak.ptp.v2_control)
                 if ptpMessageType == 5:
@@ -101,7 +101,7 @@ class ptpSniffer(object):
                                              float(pak.ptp.v2_correction_ns))
 
                 packData.printPackInfo()
-                yield packData
+                # yield packData
 
 
 class ptpPacketData(object):
