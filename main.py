@@ -8,8 +8,8 @@
 import tkinter as tk
 import random
 from gui.gui import GUI
-
-
+from openPMUThreads import *
+from threading import Thread
 
 def welcome_cg():
     print("Welcome to...")
@@ -21,6 +21,15 @@ def welcome_cg():
     print("  \_____|  |_|  |____/|______|_|  \_\\_____|_|  \_\_____|_____/ \n\n")
     return
 
+class cyberThread(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.daemon = True
+        self.start()
+
+    def run(self):
+        print("Starting Node\n")
+        startCybernode()
 
 
 
@@ -39,7 +48,7 @@ if __name__ == "__main__":
     gui.pack(side="top", fill="both", expand=True)
     gui.update_GUI()
 
-
+    cn1 = cyberThread()
     while True:
         try:
             #### GUI updating

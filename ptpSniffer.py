@@ -99,7 +99,7 @@ class ptpSniffer(object):
                                              int(pak.ptp.v2_dr_receivetimestamp_seconds),
                                              int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                              float(pak.ptp.v2_correction_ns))
-                sleep(.5)
+                sleep(float(pak.frame_info.time_delta))
                 # packData.printPackInfo()
                 yield packData
 
