@@ -44,7 +44,8 @@ class PDCrun(Thread):
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
                 self.ts_buffer.append(out['time'])
                 self.data_buffer.append((out['measurements']))
-               # print(out)
+                # print(out)
+
 
 def startCybernode():
 
