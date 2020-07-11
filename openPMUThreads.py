@@ -54,7 +54,7 @@ class PDCrun(Thread):
 
 
 
-ptpCapture = ptpSniffer('enp3s0')
+ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
 
 pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
 pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
@@ -68,7 +68,7 @@ pdc1DataBuffer = []
 pdc2TSBuffer = []
 pdc2DataBuffer = []
 tsDiff=[]
-for pack in ptpCapture.liveCapture():
+for pack in ptpCapture.fileCapture():
 
     if pack.mesType == 'Sync':
         fullSeq[1] = True
@@ -96,6 +96,7 @@ for pack in ptpCapture.liveCapture():
             pdc1DataBuffer = pdc1.data_buffer
             pdc2TSBuffer = pdc2.ts_buffer
             pdc2DataBuffer = pdc2.data_buffer
+            print(len(pdc1TSBuffer), len(pdc2TSBuffer))
             tsDiff.append((max(pdc2TSBuffer) - min(pdc2TSBuffer))-(max(pdc1TSBuffer) - min(pdc1TSBuffer)))
             print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')
             # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))

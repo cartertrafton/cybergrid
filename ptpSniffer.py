@@ -1,5 +1,5 @@
 import pyshark
-
+from time import sleep
 from datetime import datetime
 
 
@@ -99,9 +99,9 @@ class ptpSniffer(object):
                                              int(pak.ptp.v2_dr_receivetimestamp_seconds),
                                              int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                              float(pak.ptp.v2_correction_ns))
-
-                packData.printPackInfo()
-                # yield packData
+                sleep(.5)
+                # packData.printPackInfo()
+                yield packData
 
 
 class ptpPacketData(object):

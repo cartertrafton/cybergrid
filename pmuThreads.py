@@ -98,7 +98,7 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
             data = pdc.get()  # Try again receiving data
         if type(data) == DataFrame:
             outData = data.get_measurements()
-          #  print(outData)
+            # print(outData)
             yield outData
         if not data:
             pdc.quit()  # Close connection
