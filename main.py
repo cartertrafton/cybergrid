@@ -7,7 +7,7 @@
 #
 import tkinter as tk
 import random
-from gui import GUI
+from gui.gui import GUI
 
 
 
