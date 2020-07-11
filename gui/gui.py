@@ -12,9 +12,9 @@
 
 import tkinter as tk
 import random, sys
-from pmuFrame import PmuDataDisplay
-from mapFrame import SystemMapDisplay
-from nodeFrame import NodeDataDisplay
+from gui.pmuFrame import PmuDataDisplay
+from gui.mapFrame import SystemMapDisplay
+from gui.nodeFrame import NodeDataDisplay
 
 
 #### GUI class
@@ -98,8 +98,7 @@ class GUI(tk.Frame):
 #### functions
 # reset program
 def reset_sim(self):
-    self.gps_status = True
-    self.power_status = True
+    self.spoof_status = True
     self.cybergrid_status = True
     self.change = True
     return
