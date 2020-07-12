@@ -48,6 +48,7 @@ cybergrid_data_sample = DataFrame(1, ("ok", True, "timestamp", False, False, Fal
 
 def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
     pmu = Pmu(pmu_id=int(pmuID), port=int(port), ip=pmu_ip, buffer_size=int(buffer_size), set_timestamp=setTS)
+    # pmu.logger.setLevel("DEBUG")
 
     pmu.set_configuration(cybergridCfg)  # This will load PMU configuration specified in IEEE C37.118.2 -Annex D (Table D.2)
     pmu.set_header()
@@ -67,6 +68,7 @@ def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
                 #               analog=[9.91],
                 #               digital=[0x0001])
                 pmu.send(cybergrid_data_sample)  # Sending sample data frame specified in IEEE C37.118.2 - Annex D (Table D.1)
+
                 phaseAng1 = phaseIncrem(phaseAng1)
                 phaseAng2 = phaseIncrem(phaseAng2)
                 phaseAng3 = phaseIncrem(phaseAng3)

@@ -21,26 +21,30 @@ class ptpSniffer(object):
                 if 'PTP' in pak:
                     ptpMessageType = int(pak.ptp.v2_control)
                     if ptpMessageType == 5:
-                        packData = ptpPacketData(str(pak.ip.src), 'Announce', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_an_origintimestamp_seconds),
                                                  int(pak.ptp.v2_an_origintimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
                     if ptpMessageType == 0:
-                        packData = ptpPacketData(str(pak.ip.src), 'Sync', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
                                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 2:
+                        packData = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
+                                                 int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
                     if ptpMessageType == 1:
-                        packData = ptpPacketData(str(pak.ip.src), 'Delay Request', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
                                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
                     if ptpMessageType == 3:
-                        packData = ptpPacketData(str(pak.ip.src), 'Delay Response', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_dr_receivetimestamp_seconds),
                                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
-
                 #packData.printPackInfo()
                 yield packData
 
@@ -49,22 +53,27 @@ class ptpSniffer(object):
                 if 'PTP' in pak:
                     ptpMessageType = int(pak.ptp.v2_control)
                     if ptpMessageType == 5:
-                        packData = ptpPacketData(str(pak.ip.src), 'Announce', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_an_origintimestamp_seconds),
                                                  int(pak.ptp.v2_an_origintimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
                     if ptpMessageType == 0:
-                        packData = ptpPacketData(str(pak.ip.src), 'Sync', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
                                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
+                    if ptpMessageType == 2:
+                        packData = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
+                                                 int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
+                                                 int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
+                                                 float(pak.ptp.v2_correction_ns))
                     if ptpMessageType == 1:
-                        packData = ptpPacketData(str(pak.ip.src), 'Delay Request', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
                                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
                     if ptpMessageType == 3:
-                        packData = ptpPacketData(str(pak.ip.src), 'Delay Response', int(pak.ptp.v2_sequenceId),
+                        packData = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
                                                  int(pak.ptp.v2_dr_receivetimestamp_seconds),
                                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))

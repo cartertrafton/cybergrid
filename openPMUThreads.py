@@ -5,7 +5,7 @@ from ptpSniffer import ptpSniffer, ptpPacketData
 from operator import sub
 #
 # class Cybernode(object):
-
+from time import sleep
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS):
@@ -46,61 +46,65 @@ class PDCrun(Thread):
                 self.data_buffer.append((out['measurements']))
                 # print(out)
 
-
-def startCybernode():
-
-    ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
-
-    pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
-    pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
-    time.sleep(0.05)
-    pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
-    pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
-
-    fullSeq = [False, False, False, False]
-    pdc1TSBuffer = []
-    pdc1DataBuffer = []
-    pdc2TSBuffer = []
-    pdc2DataBuffer = []
-    tsDiff=[]
-
-    for pack in ptpCapture.liveCapture():
-
-        if pack.mesType == 'Sync':
-            fullSeq[1] = True
-            syncPak = pack
-        if pack.mesType == 'Announce':
-            fullSeq[0] = True
-            anncPak = pack
-        if pack.mesType == 'Delay Request':
-            fullSeq[2] = True
-            delreqPak = pack
-        if pack.mesType == 'Delay Response':
-            fullSeq[3] = True
-            delresPak = pack
-
-        if fullSeq == [True, True, True, True]:
-            # anncPak.printPackInfo()
-            # syncPak.printPackInfo()
-            # delreqPak.printPackInfo()
-            # delresPak.printPackInfo()
-            fullSeq = [False, False, False, False]
+    def get_ts_buff(self):
+        return self.ts_buffer
 
 
-            if not (len(pdc1.ts_buffer) == 0 or len(pdc2.ts_buffer) == 0):
-                pdc1TSBuffer = pdc1.ts_buffer
-                pdc1DataBuffer = pdc1.data_buffer
-                pdc2TSBuffer = pdc2.ts_buffer
-                pdc2DataBuffer = pdc2.data_buffer
-                print(len(pdc1TSBuffer), len(pdc2TSBuffer))
-                tsDiff.append((max(pdc2TSBuffer) - min(pdc2TSBuffer))-(max(pdc1TSBuffer) - min(pdc1TSBuffer)))
-                print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')
-                # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
 
 
-            # print(len(pdc2TSBuffer),len(pdc1TSBuffer))
-            pdc2.ts_buffer.clear()
-            pdc2.data_buffer.clear()
-            pdc1.ts_buffer.clear()
-            pdc1.data_buffer.clear()
+fullSeq = [False, False, False, False]
+
+tsDiff = []
+delay = None
+ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
+pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
+pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
+sleep(0.01)
+pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
+pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
+for pack in ptpCapture.liveCapture():
+    if pack.mesType == 'sync':
+        fullSeq[0] = True
+        syncPak = pack
+    if pack.mesType == 'follow_up':
+        fullSeq[1] = True
+        folPak = pack
+    if pack.mesType == 'delay_request':
+        fullSeq[2] = True
+        delreqPak = pack
+    if pack.mesType == 'delay_response':
+        fullSeq[3] = True
+        delresPak = pack
+
+    if fullSeq == [True, True, True, True]:
+        syncPak.printPackInfo()
+        folPak.printPackInfo()
+        delreqPak.printPackInfo()
+        delresPak.printPackInfo()
+        delay = (folPak.tsComplete+delreqPak.tsComplete-syncPak.tsComplete-delresPak.tsComplete)/2
+        print('\n',delay,'\n')
+
+        if (len(pdc1.ts_buffer) != 0) & (len(pdc2.ts_buffer) != 0):
+            print(len(pdc2.ts_buffer))
+
+            print(len(pdc1.ts_buffer))
+
+            a1 = max(pdc1.ts_buffer)
+            b1 = min(pdc1.ts_buffer)
+            a2 = max(pdc2.ts_buffer)
+            b2 = min(pdc2.ts_buffer)
+            c = delresPak.tsComplete
+            d = syncPak.tsComplete
+            tsDiff.append(a1-b1)
+            print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')
+
+            # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
+
+        fullSeq = [False, False, False, False]
+
+        # print(len(pdc2TSBuffer),len(pdc1TSBuffer))
+        pdc2.ts_buffer.clear()
+        pdc2.data_buffer.clear()
+        pdc1.ts_buffer.clear()
+        pdc1.data_buffer.clear()
 
