@@ -95,7 +95,8 @@ for pack in ptpCapture.liveCapture():
             b2 = min(pdc2.ts_buffer)
             c = delresPak.tsComplete
             d = syncPak.tsComplete
-            tsDiff.append(a1-b1)
+            print('1: ',a1,b1,'2: ',a2,b2)
+            tsDiff.append(((a1-b1)+(a2-b2)/2))
             print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')
 
             # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
