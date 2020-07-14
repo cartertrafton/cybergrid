@@ -11,6 +11,8 @@ from gui.gui import *
 # from openPMUThreads import *
 from threading import Thread
 from ptpSniffer import ptpSniffer, ptpPacketData
+from threadedClient import *
+
 
 def welcome_cg():
     print("Welcome to...")
@@ -112,7 +114,6 @@ if __name__ == "__main__":
             #### GUI updating
             root.update_idletasks()
             root.update()  # update the GUI
-            #gui.update_GUI()
 
         except:
             exit()
