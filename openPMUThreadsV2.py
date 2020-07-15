@@ -49,7 +49,7 @@ class PDCrun(Thread):
                 out
                 self.ts_buffer.append(out['time'])
                 self.data_buffer.append((out['measurements']))
-                # self.queue.put(out['time'])
+                self.queue.put(out['time'])
                 # print(out)
 
     def get_ts_buff(self):
@@ -114,9 +114,8 @@ class ptpThread(Thread):
 #
 # tsDiff = []
 # delay = None
-# # ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
-# # capture = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
-#
+ptpCapture = ptpSniffer(interface='enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
+ptpCapture.liveCapture()
 # pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
 # pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
 # sleep(0.01)

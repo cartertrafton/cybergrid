@@ -111,6 +111,7 @@ if __name__ == "__main__":
             # pdc1.ts_buffer.clear()
             # pdc1.data_buffer.clear()
             #### GUI updating
+
             root.update_idletasks()
             root.update()  # update the GUI
 

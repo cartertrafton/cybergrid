@@ -41,12 +41,12 @@ class ThreadedClient:
         # self.thread1.start()
         self.thread0 = PMUrun(1,'127.0.0.1',1410,2048, True, self.queue)
         self.thread1 = PDCrun(1,'127.0.0.1',1410, 2048, self.queue)
-        self.thread2 = threading.Thread(target=self.ptp_worker, args={'interface': 'enp3s0', 'df' : 'ptp'})
+        self.thread2 = threading.Thread(target=self.ptp_worker, kwargs={'interface': 'enp3s0', 'df': 'ptp'})
         # Start the periodic call in the GUI to check if the queue contains
+        self.thread2.start()
         self.thread0.start()
         sleep(0.001)
         self.thread1.start()
-        self.thread2.start()
         # anything
         self.periodicCall()
 
@@ -62,45 +62,13 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-        self.parent.after(1000, self.periodicCall)
+        self.parent.after(0, self.periodicCall)
 
     def ptp_worker(self, interface=None, df=None):
-        cap = pyshark.LiveCapture(interface=interface, display_filter=df)
+        cap = ptpSniffer('enp3s0')
         while self.running:
-            cap.sniff(timeout=1)
-            for pak in cap:
-                temp_pack = pak
-                if 'PTP' in pak:
-                    ptpMessageType = int(pak.ptp.v2_control)
-                    if ptpMessageType == 5:
-                        temp_pack = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
-                                                  int(pak.ptp.v2_an_origintimestamp_seconds),
-                                                  int(pak.ptp.v2_an_origintimestamp_nanoseconds),
-                                                  float(pak.ptp.v2_correction_ns))
-                    if ptpMessageType == 0:
-                        temp_pack = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
-                                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                                  float(pak.ptp.v2_correction_ns))
-                        self.queue.put(temp_pack)
-                    if ptpMessageType == 2:
-                        temp_pack = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
-                                                  int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
-                                                  int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
-                                                  float(pak.ptp.v2_correction_ns))
-                        self.queue.put(temp_pack)
-                    if ptpMessageType == 1:
-                        temp_pack = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
-                                                  int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                                  int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                                  float(pak.ptp.v2_correction_ns))
-                        self.queue.put(temp_pack)
-                    if ptpMessageType == 3:
-                        temp_pack = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
-                                                  int(pak.ptp.v2_dr_receivetimestamp_seconds),
-                                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
-                                                  float(pak.ptp.v2_correction_ns))
-                        self.queue.put(temp_pack)
+            for packet in cap.liveCapture():
+                self.queue.put(packet)
 
     def endApplication(self):
         self.running = 0
