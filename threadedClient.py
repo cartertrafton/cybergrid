@@ -41,7 +41,7 @@ class ThreadedClient:
         # self.thread1.start()
         self.thread0 = PMUrun(1,'127.0.0.1',1410,2048, True, self.queue)
         self.thread1 = PDCrun(1,'127.0.0.1',1410, 2048, self.queue)
-        self.thread2 = threading.Thread(target=self.ptp_worker('enp3s0', 'ptp'), daemon= True)
+        self.thread2 = threading.Thread(target=self.ptp_worker, args={'interface': 'enp3s0', 'df' : 'ptp'})
         # Start the periodic call in the GUI to check if the queue contains
         self.thread0.start()
         sleep(0.001)
@@ -64,7 +64,7 @@ class ThreadedClient:
             sys.exit(1)
         self.parent.after(1000, self.periodicCall)
 
-    def ptp_worker(self, interface, df):
+    def ptp_worker(self, interface=None, df=None):
         cap = pyshark.LiveCapture(interface=interface, display_filter=df)
         while self.running:
             cap.sniff(timeout=1)
