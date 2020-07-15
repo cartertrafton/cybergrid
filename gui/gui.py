@@ -42,6 +42,9 @@ class GUI(tk.Frame):
         self.cybergrid_status = True
         self.change = False
 
+        self.cybergrid_button = tk.StringVar()
+        self.cybergrid_button.set("DEACTIVATE CYBERGRID")
+
         #### frames
         # node status frame
         self.node_frame = tk.Frame(parent, bg='white')
@@ -89,7 +92,7 @@ class GUI(tk.Frame):
         self.button4 = tk.Button(self.attack_frame, text="SPOOF ATTACK", font=('consolas', 20), fg='red', command=lambda: spoof_attack(self))
         self.button4.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.2)
         # cybergrid activate/deactivate
-        self.button5 = tk.Button(self.attack_frame, text="DISABLE CYBERGRID", font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
+        self.button5 = tk.Button(self.attack_frame, textvariable=self.cybergrid_button, font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
         self.button5.place(relx=0.2, rely=0.5, relwidth=0.6, relheight=0.2)
 
     def update_GUI(self):
@@ -124,6 +127,7 @@ def reset_sim(self):
     self.spoof_status = True
     self.cybergrid_status = True
     self.change = True
+    self.cybergrid_button.set("DEACTIVATE CYBERGRID")
     return
 
 
@@ -149,5 +153,9 @@ def spoof_attack(self):
 def disable_cybergrid(self):
     self.cybergrid_status = not self.cybergrid_status
     self.change = True
+    if self.cybergrid_status == True:
+        self.cybergrid_button.set("DEACTIVATE CYBERGRID")
+    else:
+        self.cybergrid_button.set("ACTIVATE CYBERGRID")
     return
 
