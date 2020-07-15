@@ -68,10 +68,14 @@ if __name__ == "__main__":
     # pdc2TSBuffer = []
     # pdc2DataBuffer = []
     # tsDiff = []
-
-    while True:
+    # p = ptpSniffer()
+    # pack_list = []
+    # cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+    while client.running:
         try:
 
+            root.update_idletasks()
+            root.update()  # update the GUI
             # for pack in ptpCapture.liveCapture():
             #
             #     if pack.mesType == 'Sync':
@@ -112,8 +116,7 @@ if __name__ == "__main__":
             # pdc1.data_buffer.clear()
             #### GUI updating
 
-            root.update_idletasks()
-            root.update()  # update the GUI
+
 
         except:
             exit()

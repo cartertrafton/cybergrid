@@ -8,7 +8,9 @@ import queue
 # class Cybernode(object):
 from time import sleep
 import nest_asyncio
+
 nest_asyncio.apply()
+
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS, queue):
@@ -40,16 +42,18 @@ class PDCrun(Thread):
         self.queue = queue
         Thread.__init__(self)
         self.daemon = True
-        # self.start()
+        self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
 
     def run(self):
         print("Starting PDC " + str(self.pdc_id) + "\n")
-        while True:
+        while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
-                out
-                self.ts_buffer.append(out['time'])
-                self.data_buffer.append((out['measurements']))
-                self.queue.put(out['time'])
+                if len(self.ts_buffer)<self.data_rate:
+                    self.ts_buffer.append(out['time'])
+                    if len(self.ts_buffer)==self.data_rate:
+                        print('---',len(self.ts_buffer))
+                        self.queue.put(self.ts_buffer)
+                        self.ts_buffer.clear()
                 # print(out)
 
     def get_ts_buff(self):
@@ -61,60 +65,29 @@ class ptpThread(Thread):
     def __init__(self, interface, dispfilter, queue):
         self.interface = interface
         self.disp_filter = dispfilter
-        self.pack_cap = []
+        self.pack_list = []
         self.queue = queue
         Thread.__init__(self)
         self.daemon = True
         # self.start()
 
     def run(self):
-        capture = pyshark.LiveCapture(interface=self.interface, display_filter=self.disp_filter)
-        for pak in capture.sniff_continuously():
-            temp_pack = pak
-            if 'PTP' in pak:
-                ptpMessageType = int(pak.ptp.v2_control)
-                if ptpMessageType == 5:
-                    temp_pack = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
-                                              int(pak.ptp.v2_an_origintimestamp_seconds),
-                                              int(pak.ptp.v2_an_origintimestamp_nanoseconds),
-                                              float(pak.ptp.v2_correction_ns))
-                if ptpMessageType == 0:
-                    temp_pack = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
-                                              int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                              int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                              float(pak.ptp.v2_correction_ns))
-                    self.pack_cap[0] = temp_pack
-                    self.queue.put(self.pack_cap)
-                if ptpMessageType == 2:
-                    temp_pack = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
-                                              int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
-                                              int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
-                                              float(pak.ptp.v2_correction_ns))
-                    self.pack_cap[1] = temp_pack
-                    self.queue.put(self.pack_cap)
-
-                if ptpMessageType == 1:
-                    temp_pack = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
-                                              int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                              int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                              float(pak.ptp.v2_correction_ns))
-                    self.pack_cap[2] = temp_pack
-                    self.queue.put(self.pack_cap)
-
-                if ptpMessageType == 3:
-                    temp_pack = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
-                                              int(pak.ptp.v2_dr_receivetimestamp_seconds),
-                                              int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
-                                              float(pak.ptp.v2_correction_ns))
-                    self.pack_cap[3] = temp_pack
-                    self.queue.put(self.pack_cap)
+        cap = pyshark.LiveCapture(interface=self.interface, display_filter=self.disp_filter)
+        p = ptpSniffer()
+        while True:
+            for pak in cap.sniff_continuously(packet_count=5):
+                ob = p.assignPack(pak)
+                self.pack_list.append(ob)
+                if len(self.pack_list) == 5:
+                    self.queue.put(self.pack_list)
+                    self.pack_list.clear()
+                    break
 
 
-#
 #
 # tsDiff = []
 # delay = None
-ptpCapture = ptpSniffer(interface='enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
+ptpCapture = ptpSniffer(interface='enp3s0', capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
 ptpCapture.liveCapture()
 # pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
 # pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
@@ -157,36 +130,36 @@ ptpCapture.liveCapture()
 #               max(pdc2.ts_buffer) - min(pdc2.ts_buffer))
 #         print('Difference of Delta T between 1 and 2:    ', (a1 - b1) - (a2 - b2))
 #         # capture.sniff(packet_count=1)
-        # for pak in capture:
-        #     if 'PTP' in pak:
-        #         ptpMessageType = int(pak.ptp.v2_control)
-        #         if ptpMessageType == 5:
-        #             packData = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
-        #                                      int(pak.ptp.v2_an_origintimestamp_seconds),
-        #                                      int(pak.ptp.v2_an_origintimestamp_nanoseconds),
-        #                                      float(pak.ptp.v2_correction_ns))
-        #         if ptpMessageType == 0:
-        #             packData = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
-        #                                      int(pak.ptp.v2_sdr_origintimestamp_seconds),
-        #                                      int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-        #                                      float(pak.ptp.v2_correction_ns))
-        #         if ptpMessageType == 2:
-        #             packData = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
-        #                                      int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
-        #                                      int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
-        #                                      float(pak.ptp.v2_correction_ns))
-        #         if ptpMessageType == 1:
-        #             packData = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
-        #                                      int(pak.ptp.v2_sdr_origintimestamp_seconds),
-        #                                      int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-        #                                      float(pak.ptp.v2_correction_ns))
-        #         if ptpMessageType == 3:
-        #             packData = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
-        #                                      int(pak.ptp.v2_dr_receivetimestamp_seconds),
-        #                                      int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
-        #                                      float(pak.ptp.v2_correction_ns))
-        # packData.printPackInfo()
-        # pdc2.ts_buffer.clear()
-        # pdc2.data_buffer.clear()
-        # pdc1.ts_buffer.clear()
-        # pdc1.data_buffer.clear()
+# for pak in capture:
+#     if 'PTP' in pak:
+#         ptpMessageType = int(pak.ptp.v2_control)
+#         if ptpMessageType == 5:
+#             packData = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
+#                                      int(pak.ptp.v2_an_origintimestamp_seconds),
+#                                      int(pak.ptp.v2_an_origintimestamp_nanoseconds),
+#                                      float(pak.ptp.v2_correction_ns))
+#         if ptpMessageType == 0:
+#             packData = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
+#                                      int(pak.ptp.v2_sdr_origintimestamp_seconds),
+#                                      int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+#                                      float(pak.ptp.v2_correction_ns))
+#         if ptpMessageType == 2:
+#             packData = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
+#                                      int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
+#                                      int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
+#                                      float(pak.ptp.v2_correction_ns))
+#         if ptpMessageType == 1:
+#             packData = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
+#                                      int(pak.ptp.v2_sdr_origintimestamp_seconds),
+#                                      int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+#                                      float(pak.ptp.v2_correction_ns))
+#         if ptpMessageType == 3:
+#             packData = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
+#                                      int(pak.ptp.v2_dr_receivetimestamp_seconds),
+#                                      int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
+#                                      float(pak.ptp.v2_correction_ns))
+# packData.printPackInfo()
+# pdc2.ts_buffer.clear()
+# pdc2.data_buffer.clear()
+# pdc1.ts_buffer.clear()
+# pdc1.data_buffer.clear()

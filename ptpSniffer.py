@@ -8,7 +8,7 @@ class ptpSniffer(object):
     def __init__(self, interface=None, capfile=None):
         self.interface = interface
         self.captureFile = capfile
-        self.outPack = None
+        self.pack_list = []
     def liveCapture(self, packcount = None, timeout = None, continuous = True):
 
         cap = pyshark.LiveCapture(interface=self.interface, display_filter='ptp')
@@ -20,10 +20,13 @@ class ptpSniffer(object):
                 yield outPack
 
         elif continuous:
-            for pak in cap.sniff_continuously():
-                outPack = self.assignPack(pak)
-                outPack.printPackInfo()
-                self.outPack = outPack
+            out = cap.apply_on_packets(self.assignPack, timeout=1)
+            self.pack_list.append(out)
+            print(len(self.pack_list))
+            # for pak in cap.sniff_continuously():
+            #     outPack = self.assignPack(pak)
+            #     outPack.printPackInfo()
+            #     self.outPack = outPack
 
     def fileCapture(self):
         cap = pyshark.FileCapture(self.captureFile, keep_packets=True, display_filter='ptp')
@@ -33,44 +36,51 @@ class ptpSniffer(object):
             yield outpack
 
     def assignPack(self, pak):
-
+        # packData = ptpPacketData()
         if 'PTP' in pak:
-            packData = ptpPacketData()
-            ptpMessageType = int(pak.ptp.v2_control)
-            if ptpMessageType == 5:
-                packData = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
-                                         int(pak.ptp.v2_an_origintimestamp_seconds),
-                                         int(pak.ptp.v2_an_origintimestamp_nanoseconds),
-                                         float(pak.ptp.v2_correction_ns))
-                return packData
+            try:
+                ptpMessageType = int(pak.ptp.v2_control)
+                if ptpMessageType == 5:
+                    packData = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
+                                             int(pak.ptp.v2_an_origintimestamp_seconds),
+                                             int(pak.ptp.v2_an_origintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
+                    # packData.printPackInfo()
+                    return packData
 
-            if ptpMessageType == 0:
-                packData = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
-                                         int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                         int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                         float(pak.ptp.v2_correction_ns))
-                return packData
+                if ptpMessageType == 0:
+                    packData = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
+                                             int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                             int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
+                    # packData.printPackInfo()
+                    return packData
 
-            if ptpMessageType == 2:
-                packData = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
-                                         int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
-                                         int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
-                                         float(pak.ptp.v2_correction_ns))
-                return packData
-            if ptpMessageType == 1:
-                packData = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
-                                         int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                         int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                         float(pak.ptp.v2_correction_ns))
-                return packData
-            if ptpMessageType == 3:
-                packData = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
-                                         int(pak.ptp.v2_dr_receivetimestamp_seconds),
-                                         int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
-                                         float(pak.ptp.v2_correction_ns))
-                return packData
+                if ptpMessageType == 2:
+                    packData = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
+                                             int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
+                                             int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
+                    # packData.printPackInfo()
+                    return packData
+                if ptpMessageType == 1:
+                    packData = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
+                                             int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                             int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
+                    # packData.printPackInfo()
+                    return packData
+                if ptpMessageType == 3:
+                    packData = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
+                                             int(pak.ptp.v2_dr_receivetimestamp_seconds),
+                                             int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
+                                             float(pak.ptp.v2_correction_ns))
+                    # packData.printPackInfo()
+                    return packData
 
-            # packData.printPackInfo()
+                # packData.printPackInfo()
+            except AttributeError:
+                print("Packet Attribute Error")
 
 
 

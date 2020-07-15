@@ -25,7 +25,7 @@ cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        [(0x0000, 0xffff)],  # Mask words for digital status words
                        60,  # Nominal frequency
                        1,  # Configuration change count
-                       60)  # Rate of phasor data transmission)
+                       30)  # Rate of phasor data transmission)
 
 
 def phaseIncrem(lastAng): # increments phase angle value (in radians)
@@ -84,6 +84,7 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
     pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port),buffer_size=buffSize)
     pdc.logger.setLevel("DEBUG")
     pdc.run()  # Connect to PMU
+
     try:
         header = pdc.get_header()  # Get header message from PMU
         config = pdc.get_config()  # Get configuration from PMU
