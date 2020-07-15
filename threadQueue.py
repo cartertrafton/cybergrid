@@ -3,6 +3,7 @@ import time
 import threading
 import random
 import queue
+from gui.gui import GUI
 
 
 class GuiPart:
@@ -11,7 +12,7 @@ class GuiPart:
         # Set up the GUI
         console = tkinter.Button(master, text='Done', command=endCommand)
         console.pack()
-        # Add more GUI stuff here depending on your specific needs
+
 
     def processIncoming(self):
         """Handle all messages currently in the queue, if any."""
@@ -21,7 +22,7 @@ class GuiPart:
                 # Check contents of message and do whatever is needed. As a
                 # simple test, print it (in real life, you would
                 # suitably update the GUI's display in a richer fashion).
-                print(msg)
+                print(msg, msg)
             except queue.Empty:
                 # just on general principles, although we don't
                 # expect this branch to be taken in this case
@@ -90,6 +91,7 @@ class ThreadedClient:
 
 rand = random.Random()
 root = tkinter.Tk()
+root.title('CyberGrid')
 
 client = ThreadedClient(root)
 root.mainloop()

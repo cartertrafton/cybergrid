@@ -2,7 +2,7 @@ import time
 import pmuThreads
 from threading import Thread
 from ptpSniffer import ptpSniffer, ptpPacketData
-from operator import sub
+import pyshark
 #
 # class Cybernode(object):
 from time import sleep
@@ -53,36 +53,55 @@ class PDCrun(Thread):
 
 
 fullSeq = [False, False, False, False]
-
 tsDiff = []
 delay = None
-ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
+# ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
+capture = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
 pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
 pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
 sleep(0.01)
 pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
 pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
-for pack in ptpCapture.liveCapture():
-    if pack.mesType == 'sync':
-        fullSeq[0] = True
-        syncPak = pack
-    if pack.mesType == 'follow_up':
-        fullSeq[1] = True
-        folPak = pack
-    if pack.mesType == 'delay_request':
-        fullSeq[2] = True
-        delreqPak = pack
-    if pack.mesType == 'delay_response':
-        fullSeq[3] = True
-        delresPak = pack
+for pak in capture.sniff_continuously():
+    if 'PTP' in pak:
+        ptpMessageType = int(pak.ptp.v2_control)
+        if ptpMessageType == 5:
+            annc_pak = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
+                                     int(pak.ptp.v2_an_origintimestamp_seconds),
+                                     int(pak.ptp.v2_an_origintimestamp_nanoseconds),
+                                     float(pak.ptp.v2_correction_ns))
+        if ptpMessageType == 0:
+            sync_pack = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
+                                     int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                     int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                     float(pak.ptp.v2_correction_ns))
+            fullSeq[0] = True
+        if ptpMessageType == 2:
+            foluppack = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
+                                     int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
+                                     int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
+                                     float(pak.ptp.v2_correction_ns))
+            fullSeq[1] = True
+        if ptpMessageType == 1:
+            d_reqpack = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
+                                     int(pak.ptp.v2_sdr_origintimestamp_seconds),
+                                     int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
+                                     float(pak.ptp.v2_correction_ns))
+            fullSeq[2] = True
+        if ptpMessageType == 3:
+            d_respack = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
+                                     int(pak.ptp.v2_dr_receivetimestamp_seconds),
+                                     int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
+                                     float(pak.ptp.v2_correction_ns))
+            fullSeq[3] = True
 
     if fullSeq == [True, True, True, True]:
-        syncPak.printPackInfo()
-        folPak.printPackInfo()
-        delreqPak.printPackInfo()
-        delresPak.printPackInfo()
-        delay = (folPak.tsComplete+delreqPak.tsComplete-syncPak.tsComplete-delresPak.tsComplete)/2
-        print('\n',delay,'\n')
+        sync_pack.printPackInfo()
+        foluppack.printPackInfo()
+        d_reqpack.printPackInfo()
+        d_respack.printPackInfo()
+        # delay = (folPak.tsComplete+delreqPak.tsComplete-syncPak.tsComplete-delresPak.tsComplete)/2
+        # print('\n',delay,'\n')
 
         if (len(pdc1.ts_buffer) != 0) & (len(pdc2.ts_buffer) != 0):
             print(len(pdc2.ts_buffer))
@@ -93,8 +112,8 @@ for pack in ptpCapture.liveCapture():
             b1 = min(pdc1.ts_buffer)
             a2 = max(pdc2.ts_buffer)
             b2 = min(pdc2.ts_buffer)
-            c = delresPak.tsComplete
-            d = syncPak.tsComplete
+            # c = delresPak.tsComplete
+            # d = syncPak.tsComplete
             print('1: ',a1,b1,'2: ',a2,b2)
             tsDiff.append(((a1-b1)+(a2-b2)/2))
             print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')

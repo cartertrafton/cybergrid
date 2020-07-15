@@ -46,7 +46,7 @@ class ptpSniffer(object):
                                                  int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
                                                  float(pak.ptp.v2_correction_ns))
                 #packData.printPackInfo()
-                yield packData
+                return packData
 
         elif continuous:
             for pak in cap.sniff_continuously():
@@ -116,14 +116,27 @@ class ptpSniffer(object):
 class ptpPacketData(object):
 
     # Creates an object containing relevant PTP packet information
-    def __init__(self, source, messageid, sequenceid, seconds_timestamp, seconds_nanoseconds, correction):
+    def __init__(self, source=None, messageid=None, sequenceid=None, seconds_timestamp=None, seconds_nanoseconds=None, correction=None):
         self.sourceIP = source
         self.mesType = messageid
         self.s_timestamp = seconds_timestamp
         self.ns_timestamp = seconds_nanoseconds
         self.sequenceId = sequenceid
         self.correctionNs = correction
-        self.tsComplete = float(str(self.s_timestamp)+'.'+str(self.ns_timestamp))
+        if self.s_timestamp:
+            self.tsComplete = float(str(self.s_timestamp)+'.'+str(self.ns_timestamp))
+            self.timestampD_T = datetime.utcfromtimestamp(self.tsComplete).strftime('%Y-%m-%d %H:%M:%S')
+        elif self.s_timestamp is None:
+            self.tsComplete = float(str(0) + '.' + str(0))
+            self.timestampD_T = datetime.utcfromtimestamp(self.tsComplete).strftime('%Y-%m-%d %H:%M:%S')
+    def setData(self, source, messageid, sequenceid, seconds_timestamp, seconds_nanoseconds, correction):
+        self.sourceIP = source
+        self.mesType = messageid
+        self.s_timestamp = seconds_timestamp
+        self.ns_timestamp = seconds_nanoseconds
+        self.sequenceId = sequenceid
+        self.correctionNs = correction
+        self.tsComplete = float(str(self.s_timestamp) + '.' + str(self.ns_timestamp))
         self.timestampD_T = datetime.utcfromtimestamp(self.tsComplete).strftime('%Y-%m-%d %H:%M:%S')
 
     def printPackInfo(self):
