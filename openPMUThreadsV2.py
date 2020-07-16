@@ -34,7 +34,7 @@ class PDCrun(Thread):
         self.pdc_ip = pdcip
         self.port = port
         self.buff_size = buffsize
-        # self.ts_buffer = list()
+        self.ts_buffer = list()
         # self.data_buffer = list()
         self.queue = queue
         self.send = False
@@ -46,11 +46,10 @@ class PDCrun(Thread):
         print("Starting PDC " + str(self.pdc_id) + "\n")
         while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
-                if len(out) == 60:
-                    self.send = True
+                if self.queue.empty():
+                    print(len(out))
                     self.queue.put(out)
-                elif len(out)<60:
-                    self.send = False
+
     def get_ts_buff(self):
         return self.ts_buffer
 

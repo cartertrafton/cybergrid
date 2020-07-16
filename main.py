@@ -76,44 +76,7 @@ if __name__ == "__main__":
 
             root.update_idletasks()
             root.update()  # update the GUI
-            # for pack in ptpCapture.liveCapture():
-            #
-            #     if pack.mesType == 'Sync':
-            #         fullSeq[1] = True
-            #         syncPak = pack
-            #     if pack.mesType == 'Announce':
-            #         fullSeq[0] = True
-            #         anncPak = pack
-            #     if pack.mesType == 'Delay Request':
-            #         fullSeq[2] = True
-            #         delreqPak = pack
-            #     if pack.mesType == 'Delay Response':
-            #         fullSeq[3] = True
-            #         delresPak = pack
-            #     if fullSeq == [True, True, True, True]:
-            #         break
-            #
-            # anncPak.printPackInfo()
-            # syncPak.printPackInfo()
-            # delreqPak.printPackInfo()
-            # delresPak.printPackInfo()
-            # fullSeq = [False, False, False, False]
-            #
-            # if not (len(pdc1.ts_buffer) == 0 or len(pdc2.ts_buffer) == 0):
-            #     pdc1TSBuffer = pdc1.ts_buffer
-            #     pdc1DataBuffer = pdc1.data_buffer
-            #     pdc2TSBuffer = pdc2.ts_buffer
-            #     pdc2DataBuffer = pdc2.data_buffer
-            #     print(len(pdc1TSBuffer), len(pdc2TSBuffer))
-            #     tsDiff.append((max(pdc2TSBuffer) - min(pdc2TSBuffer)) - (max(pdc1TSBuffer) - min(pdc1TSBuffer)))
-            #     print('\nRunning average ts difference:', sum(tsDiff) / len(tsDiff), '\n')
-            #     # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
-            #
-            # # print(len(pdc2TSBuffer),len(pdc1TSBuffer))
-            # pdc2.ts_buffer.clear()
-            # pdc2.data_buffer.clear()
-            # pdc1.ts_buffer.clear()
-            # pdc1.data_buffer.clear()
+
             #### GUI updating
 
 
