@@ -104,7 +104,8 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
             if len(dt_buffer) < cybergridCfg.get_data_rate():
                 dt_buffer.append(outData['time'])
                 if len(dt_buffer) == cybergridCfg.get_data_rate():
-                    yield dt_buffer
+                    outdata = dt_buffer
+                    yield outdata
                     dt_buffer.clear()
         if not data:
             pdc.quit()  # Close connection

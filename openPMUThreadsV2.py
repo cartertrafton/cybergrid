@@ -46,7 +46,7 @@ class PDCrun(Thread):
         print("Starting PDC " + str(self.pdc_id) + "\n")
         while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
-                if self.queue.empty():
+                if self.queue.empty() and len(out)==60:
                     print(len(out))
                     self.queue.put(out)
 

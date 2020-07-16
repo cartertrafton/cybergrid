@@ -57,12 +57,22 @@ class ThreadedClient:
         """
         Check every 200 ms if there is something new in the queue.
         """
+        p = ptpSniffer()
+        pack_list = []
+        cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
         if self.queue.full():
             buff = self.queue.get()
             if len(buff) > 0:
                 print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
                 print(' Time Delta:', max(buff) - min(buff))
-
+        for pak in cap.sniff_continuously(packet_count=5):
+            ob = p.assignPack(pak)
+            pack_list.append(ob)
+            # print(ob.mesType)
+        for pk in pack_list:
+            print(pk.mesType, '- time: ', pk.tsComplete)
+        print("--------\n")
+        pack_list.clear()
         self.gui.update_GUI()
         self.gui.processIncoming()
 
@@ -71,22 +81,8 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-        # self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        self.parent.after(1000, self.periodicCall)
-
-    # def ptp_worker(self, interface=None, df=None):
-    #     p = ptpSniffer()
-    #     pack_list = []
-    #     cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
-    #     while self.running:
-    #         for pak in cap.sniff_continuously(packet_count=5):
-    #             ob = p.assignPack(pak)
-    #             pack_list.append(ob)
-    #             # print(ob.mesType)
-    #         for pk in pack_list:
-    #             print(pk.mesType)
-    #         print("--------\n")
-    #         pack_list.clear()
+        self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
+        # self.parent.after(10, self.periodicCall)
 
     def endApplication(self):
         self.running = 0
