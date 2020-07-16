@@ -25,7 +25,7 @@ cybergridCfg = ConfigFrame2(1410,  # PMU_ID
                        [(0x0000, 0xffff)],  # Mask words for digital status words
                        60,  # Nominal frequency
                        1,  # Configuration change count
-                       30)  # Rate of phasor data transmission)
+                       60)  # Rate of phasor data transmission)
 
 
 def phaseIncrem(lastAng): # increments phase angle value (in radians)

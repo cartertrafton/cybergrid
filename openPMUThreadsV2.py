@@ -37,10 +37,10 @@ class PDCrun(Thread):
         self.pdc_ip = pdcip
         self.port = port
         self.buff_size = buffsize
-        self.ts_buffer = list()
-        self.data_buffer = list()
+        # self.ts_buffer = list()
+        # self.data_buffer = list()
         self.queue = queue
-
+        self.send = False
         Thread.__init__(self)
         self.daemon = True
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
@@ -49,9 +49,11 @@ class PDCrun(Thread):
         print("Starting PDC " + str(self.pdc_id) + "\n")
         while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
-                self.queue.put(out, block=True)
-                # print(out)
-
+                if len(out) == 60:
+                    self.send = True
+                    self.queue.put(out)
+                elif len(out)<60:
+                    self.send = False
     def get_ts_buff(self):
         return self.ts_buffer
 
@@ -78,7 +80,6 @@ class ptpThread(Thread):
                     self.queue.put(self.pack_list)
                     self.pack_list.clear()
                     break
-
 
 #
 # # tsDiff = []
