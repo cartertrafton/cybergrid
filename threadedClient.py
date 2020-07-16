@@ -31,7 +31,7 @@ class ThreadedClient:
 
         # Create the queue
         self.queue = queue.Queue()
-        # self.queue.maxsize = 60
+        self.queue.maxsize = 1
         # Set up the GUI part
         self.gui = GUI(parent, self.queue)
 
@@ -58,7 +58,7 @@ class ThreadedClient:
         Check every 200 ms if there is something new in the queue.
         """
         if not self.queue.empty():
-            buff = self.queue.get()
+            buff = self.queue.get(block=True)
             print(' Length:',len(buff),' Min:',min(buff),' Max:',max(buff))
 
         self.gui.update_GUI()
@@ -69,7 +69,7 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-        self.parent.after(500, self.periodicCall)
+        self.parent.after(1000, self.periodicCall)
 
     # def ptp_worker(self, interface=None, df=None):
     #     p = ptpSniffer()

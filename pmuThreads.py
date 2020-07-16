@@ -84,7 +84,7 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
     pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port),buffer_size=buffSize)
     pdc.logger.setLevel("DEBUG")
     pdc.run()  # Connect to PMU
-
+    dt_buffer = list()
     try:
         header = pdc.get_header()  # Get header message from PMU
         config = pdc.get_config()  # Get configuration from PMU
@@ -101,8 +101,11 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
             data = pdc.get()  # Try again receiving data
         if type(data) == DataFrame:
             outData = data.get_measurements()
-            # print(outData)
-            yield outData
+            if len(dt_buffer) < cybergridCfg.get_data_rate():
+                dt_buffer.append(outData['time'])
+                if len(dt_buffer) == cybergridCfg.get_data_rate():
+                    yield dt_buffer
+                    dt_buffer.clear()
         if not data:
             pdc.quit()  # Close connection
             break
