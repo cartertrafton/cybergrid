@@ -45,8 +45,8 @@ class NodeDataDisplay(tk.Frame):
         return
 
     def update_time(self):
-        self.time1 = tk.Label(self.canvas, text="00:00:00.000", bg='white', fg='GREEN', anchor='w', font=('consolas', 20))
-        self.time2 = tk.Label(self.canvas, text="00:00:00.000", bg='white', fg='GREEN', anchor='w', font=('consolas', 20))
+        self.time1 = tk.Label(self.canvas, text="01:23:45.678", bg='white', fg='GREEN', anchor='w', font=('consolas', 20))
+        self.time2 = tk.Label(self.canvas, text="01:23:45.678", bg='white', fg='GREEN', anchor='w', font=('consolas', 20))
 
         self.time1.place(relx=0.5, rely=0.3, relwidth=0.4, relheight=0.1)
         self.time2.place(relx=0.5, rely=0.7, relwidth=0.4, relheight=0.1)
