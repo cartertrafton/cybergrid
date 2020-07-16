@@ -55,13 +55,11 @@ class ThreadedClient:
 
     def periodicCall(self):
         """
-        Check if there is something new in the queue.
+        Check every 200 ms if there is something new in the queue.
         """
-        if self.thread1.send:
-            buff = self.queue.get()
-            if len(buff)>0:
-                print(' Length:',len(buff),' Min:',min(buff),' Max:',max(buff))
-                print(' Time Delta:',max(buff)-min(buff))
+        if not self.queue.empty():
+            buff = self.queue.get(block=True)
+            print(' Length:',len(buff),' Min:',min(buff),' Max:',max(buff))
 
         self.gui.update_GUI()
         self.gui.processIncoming()
@@ -71,7 +69,7 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-        self.parent.after(round((1000*(1/self.thread1.data_rate))), self.periodicCall)
+        self.parent.after(1000, self.periodicCall)
 
     # def ptp_worker(self, interface=None, df=None):
     #     p = ptpSniffer()
