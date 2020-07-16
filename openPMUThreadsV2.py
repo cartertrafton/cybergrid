@@ -7,9 +7,6 @@ import queue
 #
 # class Cybernode(object):
 from time import sleep
-import nest_asyncio
-
-nest_asyncio.apply()
 
 
 class PMUrun(Thread):

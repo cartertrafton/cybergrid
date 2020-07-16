@@ -14,6 +14,7 @@ from ptpSniffer import ptpSniffer, ptpPacketData
 from threadedClient import *
 
 
+#### welcome menu
 def welcome_cg():
     print("Welcome to...")
     print("   _______     ______  ______ _____   _____ _____  _____ _____")
@@ -23,6 +24,13 @@ def welcome_cg():
     print(" | |____   | |  | |_) | |____| | \ \| |__| | | \ \ _| |_| |__| |")
     print("  \_____|  |_|  |____/|______|_|  \_\\_____|_|  \_\_____|_____/ \n\n")
     return
+
+
+
+def compare_time(time_src1, time_src2, threshold):
+    print("analyzing...")
+    return
+
 
 # class cyberThread(Thread):
 #     def __init__(self):
@@ -35,7 +43,7 @@ def welcome_cg():
 #         startCybernode()
 
 
-
+#### main loop
 if __name__ == "__main__":
 
     #### pre mainloop
@@ -49,11 +57,7 @@ if __name__ == "__main__":
     #### thread set up
     client = ThreadedClient(root)
 
-    #### creating GUI
-    #gui = GUI(root)
-    #gui.pack(side="top", fill="both", expand=True)
-    #gui.update_GUI()
-    #
+
     # ptpCapture = ptpSniffer('enp3s0', capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
     #
     # pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
@@ -114,7 +118,7 @@ if __name__ == "__main__":
             # pdc2.data_buffer.clear()
             # pdc1.ts_buffer.clear()
             # pdc1.data_buffer.clear()
-            #### GUI updating
+
 
 
 

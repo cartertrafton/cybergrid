@@ -12,22 +12,13 @@ import pyshark
 # https://www.oreilly.com/library/view/python-cookbook/0596001673/ch09s07.html
 
 
-### threadedClient class
+### threadedClient class; launches GUI and worker thread
 class ThreadedClient:
-    """
-    Launch the main part of the GUI and the worker thread. periodicCall and
-    endApplication could reside in the GUI part, but putting them here
-    means that you have all the thread controls in a single place.
-    """
 
-    # this client launches GUI and worker thread
+    #### start GUI and async threads; main thread
     def __init__(self, parent):
-        """
-        Start the GUI and the asynchronous threads. We are in the main
-        (original) thread of the application, which will later be used by
-        the GUI as well. We spawn a new thread for the worker (I/O).
-        """
         self.parent = parent
+        self.running = True
 
         # Create the queue
         self.queue = queue.Queue()
@@ -37,39 +28,33 @@ class ThreadedClient:
 
         # Set up the thread to do asynchronous I/O
         # More threads can also be created and used, if necessary
-        self.running = 1
+
         # self.thread1 = threading.Thread(target=self.workerThreads)
         # self.thread1.start()
         self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True, self.queue)
         self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.queue)
         # self.thread2 = ptpThread(interface='enp3s0',dispfilter='ptp',queue= self.queue)
         # self.thread2 = threading.Thread(target=self.ptp_worker, kwargs={'interface': 'enp3s0', 'df': 'ptp'})
+
         # Start the periodic call in the GUI to check if the queue contains
         # self.thread2.start()
         self.ts_buffer = list()
         self.thread0.start()
         sleep(0.001)
         self.thread1.start()
+
         # anything
         self.periodicCall()
 
+    #### check queue and update GUI
     def periodicCall(self):
-        """
-        Check every 200 ms if there is something new in the queue.
-        """
         if not self.queue.empty():
             buff = self.queue.get(block=True)
             print(' Length:',len(buff),' Min:',min(buff),' Max:',max(buff))
 
         self.gui.update_GUI()
         self.gui.processIncoming()
-
-        if not self.running:
-            # This is the brutal stop of the system. You may want to do
-            # some cleanup before actually shutting it down.
-            import sys
-            sys.exit(1)
-        self.parent.after(1000, self.periodicCall)
+        self.parent.after(500, self.periodicCall)
 
     # def ptp_worker(self, interface=None, df=None):
     #     p = ptpSniffer()
@@ -85,5 +70,3 @@ class ThreadedClient:
     #         print("--------\n")
     #         pack_list.clear()
 
-    def endApplication(self):
-        self.running = 0
