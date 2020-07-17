@@ -43,12 +43,21 @@ class PDCrun(Thread):
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
 
     def run(self):
+        seq = 0
+        dataOut = list()
         print("Starting PDC " + str(self.pdc_id) + "\n")
         while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
-                if self.queue.empty() and len(out)==60:
-                    print(len(out))
-                    self.queue.put(out)
+                if seq < self.data_rate:
+                    dataOut.append(out)
+                    seq+=1
+                elif seq == self.data_rate:
+                    if not self.queue.full():
+                        self.queue.put(dataOut)
+                        dataOut.clear()
+                        print('sent')
+                        seq = 0
+
 
     def get_ts_buff(self):
         return self.ts_buffer

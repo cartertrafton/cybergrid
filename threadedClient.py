@@ -60,20 +60,25 @@ class ThreadedClient:
         """
         Check every 200 ms if there is something new in the queue.
         """
-        if self.queue.full():
-            buff = self.queue.get()
-            if len(buff) > 0:
-                print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
-                print(' Time Delta:', max(buff) - min(buff))
-
-        self.ptpCapture()
-        for pack in self.ptp_buffer:
-            print(pack.mesType, '- time: ', pack.tsComplete)
-
-        print('-------------')
-        self.ptp_buffer.clear()
         self.gui.update_GUI()
         self.gui.processIncoming()
+        print(self.queue.empty())
+        if not self.queue.empty():
+
+            buff = self.queue.get()
+            print('we getting this?')
+            print(len(buff))
+            print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
+            print(' Time Delta:', max(buff) - min(buff))
+            self.thread1.ts_buffer.clear()
+
+        self.ptpCapture()
+        # for pack in self.ptp_buffer:
+        #     print(pack.mesType, '- time: ', pack.tsComplete)
+        #
+        # print('-------------')
+        # self.ptp_buffer.clear()
+
 
 
         if not self.running:
@@ -81,9 +86,8 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-
         self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        # self.parent.after(10, self.periodicCall)
+        # self.parent.after(1000, self.periodicCall)
 
 
     def ptpCapture(self):

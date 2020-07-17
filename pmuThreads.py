@@ -101,12 +101,7 @@ def pdcThread(pmuID, pmu_ip, port, buffSize):
             data = pdc.get()  # Try again receiving data
         if type(data) == DataFrame:
             outData = data.get_measurements()
-            if len(dt_buffer) < cybergridCfg.get_data_rate():
-                dt_buffer.append(outData['time'])
-                if len(dt_buffer) == cybergridCfg.get_data_rate():
-                    outdata = dt_buffer
-                    yield outdata
-                    dt_buffer.clear()
+            yield outData
         if not data:
             pdc.quit()  # Close connection
             break
