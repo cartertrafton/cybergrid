@@ -90,10 +90,10 @@ class GUI(tk.Frame):
         self.button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
         # spoof
         self.button4 = tk.Button(self.attack_frame, text="SPOOF ATTACK", font=('consolas', 20), fg='red', command=lambda: spoof_attack(self))
-        self.button4.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.2)
+        self.button4.place(relx=0.1, rely=0.2, relwidth=0.7, relheight=0.2)
         # cybergrid activate/deactivate
         self.button5 = tk.Button(self.attack_frame, textvariable=self.cybergrid_button, font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
-        self.button5.place(relx=0.2, rely=0.5, relwidth=0.6, relheight=0.2)
+        self.button5.place(relx=0.1, rely=0.5, relwidth=0.7, relheight=0.2)
 
     def update_GUI(self):
         self.pmuDisplay.update_plot(random.randint(25, 75), self.spoof_status, self.cybergrid_status)
