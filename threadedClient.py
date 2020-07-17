@@ -56,15 +56,16 @@ class PDCrun(Thread):
                     seq+=1
                 elif seq == self.data_rate:
                     self.qLock.acquire()
+
                     try:
-                        if not tqueue.full():
-                            tqueue.put(dataOut)
+                        if not self.queue.full():
                             self.send = True
+                            self.queue.put_nowait(dataOut)
+                            self.qLock.release()
                     finally:
-                        print(tqueue, tqueue.qsize(), 'sent', len(dataOut))
+                        print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
                         dataOut.clear()
                         seq = 0
-                        self.qLock.release()
 
 
 #
@@ -74,7 +75,7 @@ class PDCrun(Thread):
 p = ptpSniffer()
 pack_list = []
 cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
-tqueue = queue.Queue()
+
 
 ### threadedClient class
 class ThreadedClient:
@@ -94,11 +95,11 @@ class ThreadedClient:
         self.parent = parent
 
         # Create the queue
-        # self.queue = queue.Queue()
+        self.queue = queue.Queue(1)
         # self.queue.maxsize = 1
         self.qLock = threading.Lock()
         # Set up the GUI part
-        self.gui = GUI(parent, tqueue)
+        self.gui = GUI(parent, self.queue)
         self.ptp_buffer = list()
         # Set up the thread to do asynchronous I/O
         # More threads can also be created and used, if necessary
@@ -106,7 +107,7 @@ class ThreadedClient:
         # self.thread1 = threading.Thread(target=self.workerThreads)
         # self.thread1.start()
         self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
-        self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, tqueue, self.qLock)
+        self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.queue, self.qLock)
         # self.thread2 = ptpThread(interface='enp3s0',dispfilter='ptp',queue= self.queue)
         # self.thread2 = threading.Thread(target=self.ptp_worker, kwargs={'interface': 'enp3s0', 'df': 'ptp'})
         # Start the periodic call in the GUI to check if the queue contains
@@ -135,8 +136,9 @@ class ThreadedClient:
 
         try:
             self.qLock.acquire()
-            print(tqueue, tqueue.qsize(), tqueue.empty())
-            buff = tqueue.get()
+            print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
+            if self.queue.full():
+                buff = self.thread1.queue.get_nowait()
             self.qLock.release()
             # print('we getting this?')
             print(len(buff))
