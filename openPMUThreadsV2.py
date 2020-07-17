@@ -51,7 +51,7 @@ class PDCrun(Thread):
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
                 if seq < self.data_rate:
                     self.send = False
-                    dataOut.append(out)
+                    dataOut.append(out['time'])
                     seq += 1
                 elif seq == self.data_rate:
                     self.send = True

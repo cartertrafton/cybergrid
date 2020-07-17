@@ -36,7 +36,7 @@ class PDCrun(Thread):
         self.port = port
         self.buff_size = buffsize
         self.send = False
-        # self.ts_buffer = list()
+        self.ts_buffer = list()
         # self.data_buffer = list()
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
         self.queue = queue
@@ -52,7 +52,7 @@ class PDCrun(Thread):
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
                 if seq < self.data_rate:
                     self.send = False
-                    dataOut.append(out)
+                    dataOut.append(out['time'])
                     seq+=1
                 elif seq == self.data_rate:
                     self.qLock.acquire()
@@ -60,10 +60,11 @@ class PDCrun(Thread):
                     try:
                         if not self.queue.full():
                             queueEvent.set()
-                            self.queue.put_nowait(dataOut)
+                            self.ts_buffer = dataOut.copy()
+                            self.queue.put_nowait(dataOut.copy())
                             self.qLock.release()
                     finally:
-                        print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
+                        # print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
                         dataOut.clear()
                         seq = 0
 
@@ -136,17 +137,18 @@ class ThreadedClient:
 
         try:
             self.qLock.acquire()
-            print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
+            # print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
             if queueEvent.isSet():
-                buff = self.thread1.queue.get_nowait()
+                buff = self.thread1.ts_buffer.copy()
+                # self.thread1.ts_buffer.clear()
                 queueEvent.clear()
             self.qLock.release()
             # print('we getting this?')
             print(len(buff))
             print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
             print(' Time Delta:', max(buff) - min(buff))
-        except UnboundLocalError:
-            print('failed to get data from queue')
+        except UnboundLocalError as e:
+            print(e)
 
         if not self.running:
             # This is the brutal stop of the system. You may want to do

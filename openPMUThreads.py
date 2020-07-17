@@ -19,7 +19,6 @@ class PMUrun(Thread):
         self.ts_buffer = list()
         self.data_buffer = list()
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
-
         Thread.__init__(self)
         self.daemon = True
         self.output = None
@@ -58,6 +57,7 @@ class PDCrun(Thread):
                     self.ts_buffer = dataOut
                     dataOut.clear()
                     seq = 0
+
 
     def get_ts_buff(self):
         return self.ts_buffer
