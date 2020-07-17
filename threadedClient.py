@@ -59,7 +59,7 @@ class PDCrun(Thread):
 
                     try:
                         if not self.queue.full():
-                            self.send = True
+                            queueEvent.set()
                             self.queue.put_nowait(dataOut)
                             self.qLock.release()
                     finally:
@@ -75,7 +75,7 @@ class PDCrun(Thread):
 p = ptpSniffer()
 pack_list = []
 cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
-
+queueEvent = threading.Event()
 
 ### threadedClient class
 class ThreadedClient:
@@ -137,8 +137,9 @@ class ThreadedClient:
         try:
             self.qLock.acquire()
             print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
-            if self.queue.full():
+            if queueEvent.isSet():
                 buff = self.thread1.queue.get_nowait()
+                queueEvent.clear()
             self.qLock.release()
             # print('we getting this?')
             print(len(buff))

@@ -3,22 +3,26 @@ import pmuThreads
 from threading import Thread
 from ptpSniffer import ptpSniffer, ptpPacketData
 import pyshark
-#
-# class Cybernode(object):
+import sys
+
 from time import sleep
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS):
+
         self.pmu_id = pmuid
         self.pmu_ip = pmuip
         self.port = port
         self.buff_size = buffsize
         self.set_TS = setTS
+        self.send = False
+        self.ts_buffer = list()
+        self.data_buffer = list()
+        self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
 
         Thread.__init__(self)
         self.daemon = True
         self.output = None
-        self.start()
 
     def run(self):
         print("Starting PMU "+str(self.pmu_id)+"\n")
@@ -34,97 +38,27 @@ class PDCrun(Thread):
         self.buff_size = buffsize
         self.ts_buffer = list()
         self.data_buffer = list()
+        self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
+
         Thread.__init__(self)
         self.daemon = True
-        self.start()
 
     def run(self):
-        print("Starting PDC "+str(self.pdc_id)+"\n")
-        while True:
+        seq = 0
+        dataOut = list()
+        print("Starting PDC " + str(self.pdc_id) + "\n")
+        while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
-                self.ts_buffer.append(out['time'])
-                self.data_buffer.append((out['measurements']))
-                # print(out)
+                if seq < self.data_rate:
+                    self.send = False
+                    dataOut.append(out)
+                    seq += 1
+                elif seq == self.data_rate:
+                    self.send = True
+                    self.ts_buffer = dataOut
+                    dataOut.clear()
+                    seq = 0
 
     def get_ts_buff(self):
         return self.ts_buffer
-
-
-
-
-fullSeq = [False, False, False, False]
-tsDiff = []
-delay = None
-# ptpCapture = ptpSniffer('enp3s0',capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
-capture = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
-pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
-pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
-sleep(0.01)
-pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
-pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
-for pak in capture.sniff_continuously():
-    if 'PTP' in pak:
-        ptpMessageType = int(pak.ptp.v2_control)
-        if ptpMessageType == 5:
-            annc_pak = ptpPacketData(str(pak.ip.src), 'announce', int(pak.ptp.v2_sequenceId),
-                                     int(pak.ptp.v2_an_origintimestamp_seconds),
-                                     int(pak.ptp.v2_an_origintimestamp_nanoseconds),
-                                     float(pak.ptp.v2_correction_ns))
-        if ptpMessageType == 0:
-            sync_pack = ptpPacketData(str(pak.ip.src), 'sync', int(pak.ptp.v2_sequenceId),
-                                     int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                     int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                     float(pak.ptp.v2_correction_ns))
-            fullSeq[0] = True
-        if ptpMessageType == 2:
-            foluppack = ptpPacketData(str(pak.ip.src), 'follow_up', int(pak.ptp.v2_sequenceId),
-                                     int(pak.ptp.v2_fu_preciseorigintimestamp_seconds),
-                                     int(pak.ptp.v2_fu_preciseorigintimestamp_nanoseconds),
-                                     float(pak.ptp.v2_correction_ns))
-            fullSeq[1] = True
-        if ptpMessageType == 1:
-            d_reqpack = ptpPacketData(str(pak.ip.src), 'delay_request', int(pak.ptp.v2_sequenceId),
-                                     int(pak.ptp.v2_sdr_origintimestamp_seconds),
-                                     int(pak.ptp.v2_sdr_origintimestamp_nanoseconds),
-                                     float(pak.ptp.v2_correction_ns))
-            fullSeq[2] = True
-        if ptpMessageType == 3:
-            d_respack = ptpPacketData(str(pak.ip.src), 'delay_response', int(pak.ptp.v2_sequenceId),
-                                     int(pak.ptp.v2_dr_receivetimestamp_seconds),
-                                     int(pak.ptp.v2_dr_receivetimestamp_nanoseconds),
-                                     float(pak.ptp.v2_correction_ns))
-            fullSeq[3] = True
-
-    if fullSeq == [True, True, True, True]:
-        sync_pack.printPackInfo()
-        foluppack.printPackInfo()
-        d_reqpack.printPackInfo()
-        d_respack.printPackInfo()
-        # delay = (folPak.tsComplete+delreqPak.tsComplete-syncPak.tsComplete-delresPak.tsComplete)/2
-        # print('\n',delay,'\n')
-
-        if (len(pdc1.ts_buffer) != 0) & (len(pdc2.ts_buffer) != 0):
-            print(len(pdc2.ts_buffer))
-
-            print(len(pdc1.ts_buffer))
-
-            a1 = max(pdc1.ts_buffer)
-            b1 = min(pdc1.ts_buffer)
-            a2 = max(pdc2.ts_buffer)
-            b2 = min(pdc2.ts_buffer)
-            # c = delresPak.tsComplete
-            # d = syncPak.tsComplete
-            print('1: ',a1,b1,'2: ',a2,b2)
-            tsDiff.append(((a1-b1)+(a2-b2)/2))
-            print('\nRunning average ts difference:', sum(tsDiff)/len(tsDiff),'\n')
-
-            # print('delta t PMU 1:', max(pdc1TSBuffer) - min(pdc1TSBuffer),'delta t PMU 2:', max(pdc2TSBuffer) - min(pdc2TSBuffer))
-
-        fullSeq = [False, False, False, False]
-
-        # print(len(pdc2TSBuffer),len(pdc1TSBuffer))
-        pdc2.ts_buffer.clear()
-        pdc2.data_buffer.clear()
-        pdc1.ts_buffer.clear()
-        pdc1.data_buffer.clear()
 

@@ -31,16 +31,15 @@ class PMUrun(Thread):
 
 class PDCrun(Thread):
 
-    def __init__(self, pdcid, pdcip, port, buffsize, queue):
+    def __init__(self, pdcid, pdcip, port, buffsize):
         self.pdc_id = pdcid
         self.pdc_ip = pdcip
         self.port = port
         self.buff_size = buffsize
         self.send = False
-        # self.ts_buffer = list()
-        # self.data_buffer = list()
+        self.ts_buffer = list()
+        self.data_buffer = list()
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
-        self.queue = queue
         Thread.__init__(self)
         self.daemon = True
 
@@ -53,16 +52,12 @@ class PDCrun(Thread):
                 if seq < self.data_rate:
                     self.send = False
                     dataOut.append(out)
-                    seq+=1
+                    seq += 1
                 elif seq == self.data_rate:
-                    if not self.queue.full():
-
-                        self.queue.put(dataOut)
-                        self.send = True
-                        print(self.queue,self.queue.qsize(), 'sent', len(dataOut))
-                        dataOut.clear()
-                        seq = 0
-
+                    self.send = True
+                    self.ts_buffer = dataOut
+                    dataOut.clear()
+                    seq = 0
 
     def get_ts_buff(self):
         return self.ts_buffer

@@ -49,28 +49,6 @@ if __name__ == "__main__":
     #### thread set up
     client = ThreadedClient(root)
 
-    #### creating GUI
-    #gui = GUI(root)
-    #gui.pack(side="top", fill="both", expand=True)
-    #gui.update_GUI()
-    #
-    # ptpCapture = ptpSniffer('enp3s0', capfile='/home/cybergrid/cybergrid/ptpsample.pcap')
-    #
-    # pmu1 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
-    # pmu2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
-    # time.sleep(0.05)
-    # pdc1 = PDCrun(1, '127.0.0.1', 1410, 2048)
-    # pdc2 = PDCrun(2, '127.0.0.1', 1420, 2048)
-    #
-    # fullSeq = [False, False, False, False]
-    # pdc1TSBuffer = []
-    # pdc1DataBuffer = []
-    # pdc2TSBuffer = []
-    # pdc2DataBuffer = []
-    # tsDiff = []
-    # p = ptpSniffer()
-    # pack_list = []
-    # cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
     while client.running:
         try:
 
