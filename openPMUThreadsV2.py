@@ -1,16 +1,18 @@
 import time
 import pmuThreads
-from threading import Thread
-from ptpSniffer import ptpSniffer, ptpPacketData
 import pyshark
 import queue
-#
+import pmuThreads
+import pyshark
+from ptpSniffer import ptpSniffer, ptpPacketData
+from threading import Thread
+from time import sleep
 # class Cybernode(object):
 from time import sleep
 
 
 class PMUrun(Thread):
-    def __init__(self, pmuid, pmuip, port, buffsize, setTS, queue):
+    def __init__(self, pmuid, pmuip, port, buffsize, setTS):
         self.pmu_id = pmuid
         self.pmu_ip = pmuip
         self.port = port
@@ -34,13 +36,13 @@ class PDCrun(Thread):
         self.pdc_ip = pdcip
         self.port = port
         self.buff_size = buffsize
-        self.ts_buffer = list()
-        # self.data_buffer = list()
-        self.queue = queue
         self.send = False
+        # self.ts_buffer = list()
+        # self.data_buffer = list()
+        self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
+        self.queue = queue
         Thread.__init__(self)
         self.daemon = True
-        self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
 
     def run(self):
         seq = 0
@@ -49,13 +51,16 @@ class PDCrun(Thread):
         while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
                 if seq < self.data_rate:
+                    self.send = False
                     dataOut.append(out)
                     seq+=1
                 elif seq == self.data_rate:
                     if not self.queue.full():
+
                         self.queue.put(dataOut)
+                        self.send = True
+                        print(self.queue,self.queue.qsize(), 'sent', len(dataOut))
                         dataOut.clear()
-                        print('sent')
                         seq = 0
 
 

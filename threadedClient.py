@@ -2,9 +2,69 @@ import time
 import threading
 import queue
 from gui.gui import *
-from openPMUThreadsV2 import *
+# from openPMUThreadsV2 import *
 import pmuThreads
 import pyshark
+from ptpSniffer import ptpSniffer, ptpPacketData
+from threading import Thread
+from time import sleep
+
+
+class PMUrun(Thread):
+    def __init__(self, pmuid, pmuip, port, buffsize, setTS):
+        self.pmu_id = pmuid
+        self.pmu_ip = pmuip
+        self.port = port
+        self.buff_size = buffsize
+        self.set_TS = setTS
+        self.queue = queue
+        Thread.__init__(self)
+        self.daemon = True
+        self.output = None
+        # self.start()
+
+    def run(self):
+        print("Starting PMU " + str(self.pmu_id) + "\n")
+        pmuThreads.pmuThread(self.pmu_id, self.pmu_ip, self.port, self.buff_size, self.set_TS)
+
+
+class PDCrun(Thread):
+
+    def __init__(self, pdcid, pdcip, port, buffsize, queue, lock):
+        self.pdc_id = pdcid
+        self.pdc_ip = pdcip
+        self.port = port
+        self.buff_size = buffsize
+        self.send = False
+        # self.ts_buffer = list()
+        # self.data_buffer = list()
+        self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
+        self.queue = queue
+        self.qLock = lock
+        Thread.__init__(self)
+        self.daemon = True
+
+    def run(self):
+        seq = 0
+        dataOut = list()
+        print("Starting PDC " + str(self.pdc_id) + "\n")
+        while self.isAlive():
+            for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
+                if seq < self.data_rate:
+                    self.send = False
+                    dataOut.append(out)
+                    seq+=1
+                elif seq == self.data_rate:
+                    self.qLock.acquire()
+                    try:
+                        if not tqueue.full():
+                            tqueue.put(dataOut)
+                            self.send = True
+                    finally:
+                        print(tqueue, tqueue.qsize(), 'sent', len(dataOut))
+                        dataOut.clear()
+                        seq = 0
+                        self.qLock.release()
 
 
 #
@@ -14,6 +74,7 @@ import pyshark
 p = ptpSniffer()
 pack_list = []
 cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+tqueue = queue.Queue()
 
 ### threadedClient class
 class ThreadedClient:
@@ -33,18 +94,19 @@ class ThreadedClient:
         self.parent = parent
 
         # Create the queue
-        self.queue = queue.Queue()
-        self.queue.maxsize = 1
+        # self.queue = queue.Queue()
+        # self.queue.maxsize = 1
+        self.qLock = threading.Lock()
         # Set up the GUI part
-        self.gui = GUI(parent, self.queue)
+        self.gui = GUI(parent, tqueue)
         self.ptp_buffer = list()
         # Set up the thread to do asynchronous I/O
         # More threads can also be created and used, if necessary
         self.running = 1
         # self.thread1 = threading.Thread(target=self.workerThreads)
         # self.thread1.start()
-        self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True, self.queue)
-        self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.queue)
+        self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
+        self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, tqueue, self.qLock)
         # self.thread2 = ptpThread(interface='enp3s0',dispfilter='ptp',queue= self.queue)
         # self.thread2 = threading.Thread(target=self.ptp_worker, kwargs={'interface': 'enp3s0', 'df': 'ptp'})
         # Start the periodic call in the GUI to check if the queue contains
@@ -60,26 +122,28 @@ class ThreadedClient:
         """
         Check every 200 ms if there is something new in the queue.
         """
+        # print('test')
         self.gui.update_GUI()
-        self.gui.processIncoming()
-        print(self.queue.empty())
-        if not self.queue.empty():
-
-            buff = self.queue.get()
-            print('we getting this?')
-            print(len(buff))
-            print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
-            print(' Time Delta:', max(buff) - min(buff))
-            self.thread1.ts_buffer.clear()
-
+        # self.thread1.ts_buffer.clear()
         self.ptpCapture()
         # for pack in self.ptp_buffer:
         #     print(pack.mesType, '- time: ', pack.tsComplete)
         #
         # print('-------------')
-        # self.ptp_buffer.clear()
+        self.ptp_buffer.clear()
+        self.gui.processIncoming()
 
-
+        try:
+            self.qLock.acquire()
+            print(tqueue, tqueue.qsize(), tqueue.empty())
+            buff = tqueue.get()
+            self.qLock.release()
+            # print('we getting this?')
+            print(len(buff))
+            print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
+            print(' Time Delta:', max(buff) - min(buff))
+        except UnboundLocalError:
+            print('failed to get data from queue')
 
         if not self.running:
             # This is the brutal stop of the system. You may want to do
