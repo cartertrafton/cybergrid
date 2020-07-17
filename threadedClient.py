@@ -30,7 +30,7 @@ class PMUrun(Thread):
 
 class PDCrun(Thread):
 
-    def __init__(self, pdcid, pdcip, port, buffsize, queue, lock):
+    def __init__(self, pdcid, pdcip, port, buffsize, qev, lock):
         self.pdc_id = pdcid
         self.pdc_ip = pdcip
         self.port = port
@@ -39,7 +39,7 @@ class PDCrun(Thread):
         self.ts_buffer = list()
         # self.data_buffer = list()
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
-        self.queue = queue
+        self.event = qev
         self.qLock = lock
         Thread.__init__(self)
         self.daemon = True
@@ -58,10 +58,9 @@ class PDCrun(Thread):
                     self.qLock.acquire()
 
                     try:
-                        if not self.queue.full():
-                            queueEvent.set()
+                        if not self.event.isSet():
+                            self.event.set()
                             self.ts_buffer = dataOut.copy()
-                            self.queue.put_nowait(dataOut.copy())
                             self.qLock.release()
                     finally:
                         # print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
@@ -76,7 +75,6 @@ class PDCrun(Thread):
 p = ptpSniffer()
 pack_list = []
 cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
-queueEvent = threading.Event()
 
 ### threadedClient class
 class ThreadedClient:
@@ -98,7 +96,11 @@ class ThreadedClient:
         # Create the queue
         self.queue = queue.Queue(1)
         # self.queue.maxsize = 1
-        self.qLock = threading.Lock()
+        self.qLock1 = threading.Lock()
+        self.qLock2 = threading.Lock()
+        self.qev1 = threading.Event()
+        self.qev2 = threading.Event()
+
         # Set up the GUI part
         self.gui = GUI(parent, self.queue)
         self.ptp_buffer = list()
@@ -108,15 +110,19 @@ class ThreadedClient:
         # self.thread1 = threading.Thread(target=self.workerThreads)
         # self.thread1.start()
         self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
-        self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.queue, self.qLock)
+        self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.qev1, self.qLock1)
+        self.thread2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
+        self.thread3 = PDCrun(2, '127.0.0.1', 1420, 2048, self.qev2, self.qLock2)
         # self.thread2 = ptpThread(interface='enp3s0',dispfilter='ptp',queue= self.queue)
         # self.thread2 = threading.Thread(target=self.ptp_worker, kwargs={'interface': 'enp3s0', 'df': 'ptp'})
         # Start the periodic call in the GUI to check if the queue contains
         # self.thread2.start()
         self.ts_buffer = list()
         self.thread0.start()
+        self.thread2.start()
         sleep(0.001)
         self.thread1.start()
+        self.thread3.start()
         # anything
         self.periodicCall()
 
@@ -136,18 +142,34 @@ class ThreadedClient:
         self.gui.processIncoming()
 
         try:
-            self.qLock.acquire()
+            #
             # print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
-            if queueEvent.isSet():
-                buff = self.thread1.ts_buffer.copy()
-                # self.thread1.ts_buffer.clear()
-                queueEvent.clear()
-            self.qLock.release()
-            # print('we getting this?')
-            print(len(buff))
-            print(' Length:', len(buff), ' Min:', min(buff), ' Max:', max(buff))
-            print(' Time Delta:', max(buff) - min(buff))
-        except UnboundLocalError as e:
+            if self.qev1.isSet():
+                self.qLock1.acquire()
+
+                buff1 = self.thread1.ts_buffer.copy()
+
+                self.qLock1.release()
+                self.qev1.clear()
+
+            if self.qev2.isSet():
+                self.qLock2.acquire()
+
+                buff2 = self.thread3.ts_buffer.copy()
+
+                self.qLock2.release()
+                self.qev2.clear()
+
+            print('PMU 1\n-------------------------')
+            print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
+            print(' Time Delta:', max(buff1) - min(buff1))
+            print('PMU 2\n-------------------------')
+            print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
+            print(' Time Delta:', max(buff2) - min(buff2))
+
+            print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
+
+        except UnboundLocalError or ValueError as e:
             print(e)
 
         if not self.running:
@@ -155,8 +177,8 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-        self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        # self.parent.after(1000, self.periodicCall)
+        # self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
+        self.parent.after(5, self.periodicCall)
 
 
     def ptpCapture(self):
