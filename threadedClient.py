@@ -118,17 +118,7 @@ class ThreadedClient:
     def periodicCall(self):
         self.gui.update_GUI()
         # self.thread1.ts_buffer.clear()
-<<<<<<< HEAD
-        #self.ptpCapture()
-        # for pack in self.ptp_buffer:
-        #     print(pack.mesType, '- time: ', pack.tsComplete)
-        #
-        # print('-------------')
-        #self.ptp_buffer.clear()
-=======
-
         self.ptp_buffer.clear()
->>>>>>> 409810a06832e529731c94c5afad880ff701e055
         self.gui.processIncoming()
 
         try:
@@ -176,12 +166,7 @@ class ThreadedClient:
 
 
     def ptpCapture(self):
-<<<<<<< HEAD
-        for pak in cap.sniff_continuously(packet_count=5):
-=======
-
         for pak in cap.sniff_continuously(packet_count=1):
->>>>>>> 409810a06832e529731c94c5afad880ff701e055
             self.ptp_buffer.append(p.assignPack(pak))
         cap.clear()
 
