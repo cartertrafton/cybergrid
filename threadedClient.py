@@ -4,6 +4,7 @@ import pyshark
 from ptpSniffer import ptpSniffer, ptpPacketData
 from threading import Thread
 from time import sleep
+from datetime import datetime
 # from hanging_threads import start_monitoring
 # monitoring_thread = start_monitoring()
 
@@ -116,52 +117,60 @@ class ThreadedClient:
         ts1 = False
         ts2 = False
 
-
-
         try:
-            #
-            # self.ptpCapture()
-            #
-            # if self.qev1.isSet():
-            #     self.qLock1.acquire()
-            #     if len(self.thread1.ts_buffer) > 0:
-            #         buff1 = self.thread1.ts_buffer.copy()
-            #         ts1 = True
-            #     self.qLock1.release()
-            #     self.qev1.clear()
-            #
-            # if self.qev2.isSet():
-            #     self.qLock2.acquire()
-            #     if len(self.thread3.ts_buffer) > 0:
-            #         buff2 = self.thread3.ts_buffer.copy()
-            #         ts2 = True
-            #     self.qLock2.release()
-            #     self.qev2.clear()
-            #
-            # if ts1 and ts2:
-            #     print('PMU 1\n-------------------------')
-            #     print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
-            #     print(' Time Delta:', max(buff1) - min(buff1))
-            #     print('PMU 2\n-------------------------')
-            #     print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
-            #     print(' Time Delta:', max(buff2) - min(buff2))
-            #
-            #     print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
-            #     print('-------------')
-            #     for pack in self.ptp_buffer:
-            #         print(pack.mesType, '- time: ', pack.tsComplete)
-            #     ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
-            #     self.avgDelay.append(ptpDelay)
-            #     print('-------------\n')
-            #     print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
-            #     self.ptp_buffer.clear()
-            # else:
-            #     pass
-            #### update GUI with three data points: PMU level, PTP time, and PMU time
-            self.gui.update_GUI(random.randint(25, 75), random.randint(25, 75), random.randint(25, 75), "00:00:00.000", "00:00:00.000", "00:00:00.000")
-            self.running = self.gui.checkIfRunning()
-            self.gui.processIncoming()
-            self.ptp_buffer.clear()
+            self.ptpCapture()
+
+            if self.qev1.isSet():
+                self.qLock1.acquire()
+                if len(self.thread1.ts_buffer) > 0:
+                    buff1 = self.thread1.ts_buffer.copy()
+                    ts1 = True
+                self.qLock1.release()
+                self.qev1.clear()
+
+            if self.qev2.isSet():
+                self.qLock2.acquire()
+                if len(self.thread3.ts_buffer) > 0:
+                    buff2 = self.thread3.ts_buffer.copy()
+                    ts2 = True
+                self.qLock2.release()
+                self.qev2.clear()
+
+            if ts1 and ts2:
+                print('PMU 1\n-------------------------')
+                print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
+                print(' Time Delta:', max(buff1) - min(buff1))
+                print('PMU 2\n-------------------------')
+                print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
+                print(' Time Delta:', max(buff2) - min(buff2))
+
+                print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
+                print('-------------')
+                for pack in self.ptp_buffer:
+                    print(pack.mesType, '- time: ', pack.tsComplete)
+                ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
+                self.avgDelay.append(ptpDelay)
+                print('-------------\n')
+                print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
+
+                #### update GUI with three data points: PMU level, PTP time, and PMU time
+                # self.gui.update_GUI(random.randint(25, 75),
+                ###################### pmu level 2
+                ###################### pmu level 3
+                #                     datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+                #                     datetime.utcfromtimestamp(max(buff1)).strftime('%H:%M:%S.%f'))
+                ###################### pmu time 2
+
+                #### random values
+                self.gui.update_GUI(random.randint(25, 75),
+                                    random.randint(25, 75),
+                                    random.randint(25, 75),
+                                    "00:00:00.000",
+                                    "00:00:00.000",
+                                    "00:00:00.000")
+                self.running = self.gui.checkIfRunning()
+                self.gui.processIncoming()
+                self.ptp_buffer.clear()
 
 
 
