@@ -4,7 +4,8 @@ import pyshark
 from ptpSniffer import ptpSniffer, ptpPacketData
 from threading import Thread
 from time import sleep
-
+from hanging_threads import start_monitoring
+monitoring_thread = start_monitoring()
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS):
@@ -51,11 +52,13 @@ class PDCrun(Thread):
                     dataOut.append(out['time'])
                     seq+=1
                 elif seq == self.data_rate:
-                    self.qLock.acquire()
+
 
                     try:
+
                         if not self.event.isSet():
                             self.event.set()
+                            self.qLock.acquire()
                             self.ts_buffer = dataOut.copy()
                             self.qLock.release()
                     finally:
