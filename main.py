@@ -35,8 +35,9 @@ def welcome_cg():
 #         startCybernode()
 
 
-#### main loop
+
 if __name__ == "__main__":
+
     #### pre mainloop
     print("Starting CyberGrid...\n\n")
     welcome_cg()
@@ -48,11 +49,13 @@ if __name__ == "__main__":
     #### thread set up
     client = ThreadedClient(root)
 
-    while client.running:
+    while True:
         try:
             root.update_idletasks()
             root.update()  # update the GUI
+
         except:
             exit()
+
 
 

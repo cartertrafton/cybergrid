@@ -28,6 +28,8 @@ class GUI(tk.Frame):
     def __init__(self, parent, queue):
         tk.Frame.__init__(self)
 
+        self.isRunning = 1
+
         #### queue
         self.queue = queue
 
@@ -89,7 +91,7 @@ class GUI(tk.Frame):
         self.button1 = tk.Button(parent, text="RESET", font=('consolas', 20), bg='white', fg='red', command=lambda: reset_sim(self))
         self.button1.place(relx=0.8, relwidth=0.1, relheight=0.1)
         # exit
-        self.button2 = tk.Button(parent, text="EXIT", font=('consolas', 20), bg='white', fg='red', command=lambda: exit_sim(parent))
+        self.button2 = tk.Button(parent, text="EXIT", font=('consolas', 20), bg='white', fg='red', command=lambda: exit_sim(self))
         self.button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
         # spoof
         self.button4 = tk.Button(self.attack_frame, text="SPOOF ATTACK", font=('consolas', 20), fg='red', command=lambda: spoof_attack(self))
@@ -131,7 +133,8 @@ class GUI(tk.Frame):
                 # expect this branch to be taken in this case
                 pass
 
-
+    def checkIfRunning(self):
+        return self.isRunning
 
 #### functions
 # reset program
@@ -144,11 +147,9 @@ def reset_sim(self):
 
 
 # exit program
-def exit_sim(parent):
+def exit_sim(self):
     print("Exiting CyberGrid...")
-    parent.quit()
-    parent.destroy()
-    sys.exit()
+    self.isRunning = 0
     return
 
 
