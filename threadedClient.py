@@ -4,6 +4,7 @@ import pyshark
 from ptpSniffer import ptpSniffer, ptpPacketData
 from threading import Thread
 from time import sleep
+from datetime import datetime
 # from hanging_threads import start_monitoring
 # monitoring_thread = start_monitoring()
 
@@ -116,8 +117,6 @@ class ThreadedClient:
         ts1 = False
         ts2 = False
 
-
-
         try:
             #
             self.ptpCapture()
@@ -154,14 +153,14 @@ class ThreadedClient:
                 self.avgDelay.append(ptpDelay)
                 print('-------------\n')
                 print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
-                self.ptp_buffer.clear()
-            else:
-                pass
+
             #### update GUI with three data points: PMU level, PTP time, and PMU time
-            self.gui.update_GUI(random.randint(25, 75), "00:00:00.000", "00:00:00.000")
-            self.running = self.gui.checkIfRunning()
-            self.gui.processIncoming()
-            self.ptp_buffer.clear()
+                self.gui.update_GUI(random.randint(25, 75),
+                                    datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+                                    datetime.utcfromtimestamp(max(buff1)).strftime('%H:%M:%S.%f'))
+                self.running = self.gui.checkIfRunning()
+                self.gui.processIncoming()
+                self.ptp_buffer.clear()
 
 
 
