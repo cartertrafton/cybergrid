@@ -28,6 +28,8 @@ class GUI(tk.Frame):
     def __init__(self, parent, queue):
         tk.Frame.__init__(self)
 
+        self.isRunning = 1
+
         #### queue
         self.queue = queue
 
@@ -44,6 +46,9 @@ class GUI(tk.Frame):
 
         self.cybergrid_button = tk.StringVar()
         self.cybergrid_button.set("DEACTIVATE CYBERGRID")
+
+        self.ptp_time = tk.StringVar()
+        self.pmu_time = tk.StringVar()
 
         #### frames
         # node status frame
@@ -86,7 +91,7 @@ class GUI(tk.Frame):
         self.button1 = tk.Button(parent, text="RESET", font=('consolas', 20), bg='white', fg='red', command=lambda: reset_sim(self))
         self.button1.place(relx=0.8, relwidth=0.1, relheight=0.1)
         # exit
-        self.button2 = tk.Button(parent, text="EXIT", font=('consolas', 20), bg='white', fg='red', command=lambda: exit_sim(parent))
+        self.button2 = tk.Button(parent, text="EXIT", font=('consolas', 20), bg='white', fg='red', command=lambda: exit_sim(self))
         self.button2.place(relx=0.9, relwidth=0.1, relheight=0.1)
         # spoof
         self.button4 = tk.Button(self.attack_frame, text="SPOOF ATTACK", font=('consolas', 20), fg='red', command=lambda: spoof_attack(self))
@@ -95,9 +100,18 @@ class GUI(tk.Frame):
         self.button5 = tk.Button(self.attack_frame, textvariable=self.cybergrid_button, font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
         self.button5.place(relx=0.1, rely=0.5, relwidth=0.7, relheight=0.2)
 
-    def update_GUI(self):
-        self.pmuDisplay.update_plot(random.randint(25, 75), self.spoof_status, self.cybergrid_status)
-        self.nodeDisplay.update_time()
+    def update_GUI(self, pmu_level, ptp_t, pmu_t):
+        #### set time variables
+        self.ptp_time.set(ptp_t)
+        self.pmu_time.set(pmu_t)
+
+        #### update PMU display
+        self.pmuDisplay.update_plot(pmu_level, self.spoof_status, self.cybergrid_status)
+
+        #### update Node time
+        self.nodeDisplay.update_time(self.ptp_time, self.pmu_time)
+
+        #### update system map, if change has been made
         if self.change:
             self.nodeDisplay.update_ptp_status(self.cybergrid_status)
             self.nodeDisplay.update_pmu_status(self.spoof_status, self.cybergrid_status)
@@ -106,7 +120,7 @@ class GUI(tk.Frame):
         return
 
     def processIncoming(self):
-        """Handle all messages currently in the queue, if any."""
+        #### process messages in queue
         while self.queue.qsize():
             try:
                 msg = self.queue.get(0)
@@ -119,7 +133,8 @@ class GUI(tk.Frame):
                 # expect this branch to be taken in this case
                 pass
 
-
+    def checkIfRunning(self):
+        return self.isRunning
 
 #### functions
 # reset program
@@ -132,11 +147,9 @@ def reset_sim(self):
 
 
 # exit program
-def exit_sim(parent):
+def exit_sim(self):
     print("Exiting CyberGrid...")
-    parent.quit()
-    parent.destroy()
-    sys.exit()
+    self.isRunning = 0
     return
 
 

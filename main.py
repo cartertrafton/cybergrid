@@ -49,17 +49,13 @@ if __name__ == "__main__":
     #### thread set up
     client = ThreadedClient(root)
 
-    while client.running:
+    while True:
         try:
-
             root.update_idletasks()
             root.update()  # update the GUI
 
-            #### GUI updating
-
-
-
         except:
             exit()
+
 
 

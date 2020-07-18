@@ -26,7 +26,6 @@ class PMUrun(Thread):
 
 
 class PDCrun(Thread):
-
     def __init__(self, pdcid, pdcip, port, buffsize, qev, lock):
         self.pdc_id = pdcid
         self.pdc_ip = pdcip
@@ -76,9 +75,8 @@ cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
 
 ### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
-
-    #### start GUI, set up and start PMU/PDC, and connect to PTP network
     def __init__(self, parent):
+        self.running = 1
         self.parent = parent
 
         # Create the queue
@@ -89,20 +87,17 @@ class ThreadedClient:
         self.qev1 = threading.Event()
         self.qev2 = threading.Event()
 
-        # Set up the GUI part
-        self.gui = GUI(parent, self.queue)
         self.ptp_buffer = list()
-        # Set up the thread to do asynchronous I/O
-        # More threads can also be created and used, if necessary
-        self.running = 1
+
+        #### set up the GUI part
+        self.gui = GUI(parent, self.queue)
+
 
         self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
         self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.qev1, self.qLock1)
         self.thread2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
         self.thread3 = PDCrun(2, '127.0.0.1', 1420, 2048, self.qev2, self.qLock2)
 
-        # Start the periodic call in the GUI to check if the queue contains
-        # self.thread2.start()
         self.avgDelay = list()
         self.thread0.start()
         self.thread2.start()
@@ -113,53 +108,62 @@ class ThreadedClient:
         self.periodicCall()
 
     def periodicCall(self):
-        """
-        Check every 200 ms if there is something new in the queue.
-        """
+
+
+        self.thread1.ts_buffer.clear()
+        self.ptp_buffer.clear()
+
         ts1 = False
         ts2 = False
+
+
+
         try:
-            #
-            self.ptpCapture()
-
-            if self.qev1.isSet():
-                self.qLock1.acquire()
-                if len(self.thread1.ts_buffer) > 0:
-                    buff1 = self.thread1.ts_buffer.copy()
-                    ts1 = True
-                self.qLock1.release()
-                self.qev1.clear()
-
-            if self.qev2.isSet():
-                self.qLock2.acquire()
-                if len(self.thread3.ts_buffer) > 0:
-                    buff2 = self.thread3.ts_buffer.copy()
-                    ts2 = True
-                self.qLock2.release()
-                self.qev2.clear()
-
-            if ts1 and ts2:
-                print('PMU 1\n-------------------------')
-                print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
-                print(' Time Delta:', max(buff1) - min(buff1))
-                print('PMU 2\n-------------------------')
-                print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
-                print(' Time Delta:', max(buff2) - min(buff2))
-
-                print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
-                print('-------------')
-                for pack in self.ptp_buffer:
-                    print(pack.mesType, '- time: ', pack.tsComplete)
-                ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
-                self.avgDelay.append(ptpDelay)
-                print('-------------\n')
-                print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
-                self.ptp_buffer.clear()
-            else:
-                pass
-            self.gui.update_GUI()
-            self.ptp_buffer.clear()
+        #     #
+        #     self.ptpCapture()
+        #
+        #     if self.qev1.isSet():
+        #         self.qLock1.acquire()
+        #         if len(self.thread1.ts_buffer) > 0:
+        #             buff1 = self.thread1.ts_buffer.copy()
+        #             ts1 = True
+        #         self.qLock1.release()
+        #         self.qev1.clear()
+        #
+        #     if self.qev2.isSet():
+        #         self.qLock2.acquire()
+        #         if len(self.thread3.ts_buffer) > 0:
+        #             buff2 = self.thread3.ts_buffer.copy()
+        #             ts2 = True
+        #         self.qLock2.release()
+        #         self.qev2.clear()
+        #
+        #     if ts1 and ts2:
+        #         print('PMU 1\n-------------------------')
+        #         print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
+        #         print(' Time Delta:', max(buff1) - min(buff1))
+        #         print('PMU 2\n-------------------------')
+        #         print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
+        #         print(' Time Delta:', max(buff2) - min(buff2))
+        #
+        #         print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
+        #         print('-------------')
+        #         for pack in self.ptp_buffer:
+        #             print(pack.mesType, '- time: ', pack.tsComplete)
+        #         ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
+        #         self.avgDelay.append(ptpDelay)
+        #         print('-------------\n')
+        #         print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
+        #         self.ptp_buffer.clear()
+        #     else:
+        #         pass
+            #### update GUI with three data points: PMU level, PTP time, and PMU time
+            self.gui.update_GUI(random.randint(25, 75), "00:00:00.000", "00:00:00.000")
+            self.running = self.gui.checkIfRunning()
             self.gui.processIncoming()
+            self.ptp_buffer.clear()
+
+
 
         except UnboundLocalError or ValueError as e:
             print(e)
@@ -176,6 +180,15 @@ class ThreadedClient:
             # self.parent.after(5, self.periodicCall)
 
 
+        if not self.running:
+            parent.quit()
+            parent.destroy()
+            import sys
+            sys.exit(1)
+        self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
+        self.parent.after(5, self.periodicCall)
+
+
 
     def ptpCapture(self):
         for pak in cap.sniff_continuously(packet_count=5):
@@ -183,6 +196,3 @@ class ThreadedClient:
 
         cap.clear()
 
-
-    def endApplication(self):
-        self.running = 0
