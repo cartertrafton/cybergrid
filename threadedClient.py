@@ -64,7 +64,6 @@ class PDCrun(Thread):
                         seq = 0
 
 
-#
 ### adapted from
 # https://www.oreilly.com/library/view/python-cookbook/0596001673/ch09s07.html
 
@@ -72,21 +71,11 @@ p = ptpSniffer()
 pack_list = []
 cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
 
-### threadedClient class
+### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
-    """
-    Launch the main part of the GUI and the worker thread. periodicCall and
-    endApplication could reside in the GUI part, but putting them here
-    means that you have all the thread controls in a single place.
-    """
 
-    # this client launches GUI and worker thread
+    #### start GUI, set up and start PMU/PDC, and connect to PTP network
     def __init__(self, parent):
-        """
-        Start the GUI and the asynchronous threads. We are in the main
-        (original) thread of the application, which will later be used by
-        the GUI as well. We spawn a new thread for the worker (I/O).
-        """
         self.parent = parent
 
         # Create the queue

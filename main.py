@@ -24,6 +24,17 @@ def welcome_cg():
     print("  \_____|  |_|  |____/|______|_|  \_\\_____|_|  \_\_____|_____/ \n\n")
     return
 
+# class cyberThread(Thread):
+#     def __init__(self):
+#         Thread.__init__(self)
+#         self.daemon = True
+#         self.start()
+#
+#     def run(self):
+#         print("Starting Node\n")
+#         startCybernode()
+
+
 
 if __name__ == "__main__":
 
