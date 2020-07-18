@@ -4,8 +4,8 @@ import pyshark
 from ptpSniffer import ptpSniffer, ptpPacketData
 from threading import Thread
 from time import sleep
-from hanging_threads import start_monitoring
-monitoring_thread = start_monitoring()
+# from hanging_threads import start_monitoring
+# monitoring_thread = start_monitoring()
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS):
@@ -71,7 +71,7 @@ class PDCrun(Thread):
 
 p = ptpSniffer()
 pack_list = []
-# cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
 
 ### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
@@ -119,6 +119,7 @@ class ThreadedClient:
 
 
         try:
+            #
             self.ptpCapture()
 
             if self.qev1.isSet():
@@ -172,23 +173,12 @@ class ThreadedClient:
             if not self.running:
                 # This is the brutal stop of the system. You may want to do
                 # some cleanup before actually shutting it down.
-                parent.quit()
-                parent.destroy()
+                self.parent.quit()
+                self.parent.destroy()
                 import sys
                 sys.exit(1)
             self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-            #self.parent.after(5, self.periodicCall)
-
-
-        if not self.running:
-            parent.quit()
-            parent.destroy()
-            import sys
-            sys.exit(1)
-        self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        #self.parent.after(5, self.periodicCall)
-
-
+            # self.parent.after(5, self.periodicCall)
 
     def ptpCapture(self):
         for pak in cap.sniff_continuously(packet_count=5):
