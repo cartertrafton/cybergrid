@@ -133,17 +133,14 @@ class ThreadedClient:
         # print('test')
         self.gui.update_GUI()
         # self.thread1.ts_buffer.clear()
-        self.ptpCapture()
-        # for pack in self.ptp_buffer:
-        #     print(pack.mesType, '- time: ', pack.tsComplete)
-        #
-        # print('-------------')
+
         self.ptp_buffer.clear()
         self.gui.processIncoming()
 
         try:
             #
             # print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
+            self.ptpCapture()
             if self.qev1.isSet():
                 self.qLock1.acquire()
 
@@ -160,14 +157,20 @@ class ThreadedClient:
                 self.qLock2.release()
                 self.qev2.clear()
 
-            print('PMU 1\n-------------------------')
-            print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
-            print(' Time Delta:', max(buff1) - min(buff1))
-            print('PMU 2\n-------------------------')
-            print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
-            print(' Time Delta:', max(buff2) - min(buff2))
+                print('PMU 1\n-------------------------')
+                print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
+                print(' Time Delta:', max(buff1) - min(buff1))
+                print('PMU 2\n-------------------------')
+                print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
+                print(' Time Delta:', max(buff2) - min(buff2))
 
-            print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
+                print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
+            print('-------------')
+            for pack in self.ptp_buffer:
+                print(pack.mesType, '- time: ', pack.tsComplete)
+
+            print('-------------\nptp delayed:',((max(buff1)+max(buff2))/2)-self.ptp_buffer[0].tsComplete,'\n\n')
+            self.ptp_buffer.clear()
 
         except UnboundLocalError or ValueError as e:
             print(e)
@@ -177,13 +180,13 @@ class ThreadedClient:
             # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
-        # self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        self.parent.after(5, self.periodicCall)
+        self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
+        # self.parent.after(5, self.periodicCall)
 
 
     def ptpCapture(self):
 
-        for pak in cap.sniff_continuously(packet_count=5):
+        for pak in cap.sniff_continuously(packet_count=1):
             self.ptp_buffer.append(p.assignPack(pak))
 
         cap.clear()
