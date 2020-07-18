@@ -48,7 +48,8 @@ class GUI(tk.Frame):
         self.cybergrid_button.set("DEACTIVATE CYBERGRID")
 
         self.ptp_time = tk.StringVar()
-        self.pmu_time = tk.StringVar()
+        self.pmu_time1 = tk.StringVar()
+        self.pmu_time2 = tk.StringVar()
 
         #### frames
         # node status frame
@@ -100,16 +101,17 @@ class GUI(tk.Frame):
         self.button5 = tk.Button(self.attack_frame, textvariable=self.cybergrid_button, font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
         self.button5.place(relx=0.1, rely=0.5, relwidth=0.7, relheight=0.2)
 
-    def update_GUI(self, pmu_level, ptp_t, pmu_t):
+    def update_GUI(self, pmu_level1, pmu_level2, pmu_level3, ptp_t, pmu_t1, pmu_t2):
         #### set time variables
         self.ptp_time.set(ptp_t)
-        self.pmu_time.set(pmu_t)
+        self.pmu_time1.set(pmu_t1)
+        self.pmu_time2.set(pmu_t2)
 
         #### update PMU display
-        self.pmuDisplay.update_plot(pmu_level, self.spoof_status, self.cybergrid_status)
+        self.pmuDisplay.update_plot(pmu_level1, pmu_level2, pmu_level3, self.spoof_status, self.cybergrid_status)
 
         #### update Node time
-        self.nodeDisplay.update_time(self.ptp_time, self.pmu_time)
+        self.nodeDisplay.update_time(self.ptp_time, self.pmu_time1, self.pmu_time2)
 
         #### update system map, if change has been made
         if self.change:
@@ -133,8 +135,10 @@ class GUI(tk.Frame):
                 # expect this branch to be taken in this case
                 pass
 
+
     def checkIfRunning(self):
         return self.isRunning
+
 
 #### functions
 # reset program
@@ -151,7 +155,6 @@ def exit_sim(self):
     print("Exiting CyberGrid...")
     self.isRunning = 0
     return
-
 
 
 # spoof attack
