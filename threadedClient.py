@@ -68,29 +68,18 @@ class PDCrun(Thread):
                         seq = 0
 
 
-#
 ### adapted from
 # https://www.oreilly.com/library/view/python-cookbook/0596001673/ch09s07.html
 
 p = ptpSniffer()
 pack_list = []
-cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+#cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
 
-### threadedClient class
+### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
-    """
-    Launch the main part of the GUI and the worker thread. periodicCall and
-    endApplication could reside in the GUI part, but putting them here
-    means that you have all the thread controls in a single place.
-    """
 
-    # this client launches GUI and worker thread
+    #### start GUI, set up and start PMU/PDC, and connect to PTP network
     def __init__(self, parent):
-        """
-        Start the GUI and the asynchronous threads. We are in the main
-        (original) thread of the application, which will later be used by
-        the GUI as well. We spawn a new thread for the worker (I/O).
-        """
         self.parent = parent
 
         # Create the queue
@@ -127,22 +116,17 @@ class ThreadedClient:
         self.periodicCall()
 
     def periodicCall(self):
-        """
-        Check every 200 ms if there is something new in the queue.
-        """
-        # print('test')
         self.gui.update_GUI()
         # self.thread1.ts_buffer.clear()
-        self.ptpCapture()
+        #self.ptpCapture()
         # for pack in self.ptp_buffer:
         #     print(pack.mesType, '- time: ', pack.tsComplete)
         #
         # print('-------------')
-        self.ptp_buffer.clear()
+        #self.ptp_buffer.clear()
         self.gui.processIncoming()
 
         try:
-            #
             # print(self.thread1.queue, self.thread1.queue.qsize(), 'recv', self.thread1.queue.full())
             if self.qev1.isSet():
                 self.qLock1.acquire()
@@ -173,8 +157,6 @@ class ThreadedClient:
             print(e)
 
         if not self.running:
-            # This is the brutal stop of the system. You may want to do
-            # some cleanup before actually shutting it down.
             import sys
             sys.exit(1)
         # self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
@@ -182,10 +164,8 @@ class ThreadedClient:
 
 
     def ptpCapture(self):
-
         for pak in cap.sniff_continuously(packet_count=5):
             self.ptp_buffer.append(p.assignPack(pak))
-
         cap.clear()
 
 
