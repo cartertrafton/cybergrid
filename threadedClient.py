@@ -29,7 +29,6 @@ class PMUrun(Thread):
 
 
 class PDCrun(Thread):
-
     def __init__(self, pdcid, pdcip, port, buffsize, qev, lock):
         self.pdc_id = pdcid
         self.pdc_ip = pdcip
@@ -77,7 +76,6 @@ pack_list = []
 
 ### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
-
     #### start GUI, set up and start PMU/PDC, and connect to PTP network
     def __init__(self, parent):
         self.parent = parent
@@ -116,8 +114,10 @@ class ThreadedClient:
         self.periodicCall()
 
     def periodicCall(self):
-        self.gui.update_GUI()
-        # self.thread1.ts_buffer.clear()
+        #### update GUI with three data points: PMU level, PTP time, and PMU time
+        self.gui.update_GUI(random.randint(25, 75), "00:00:00.000", "00:00:00.000")
+
+        self.thread1.ts_buffer.clear()
         self.ptp_buffer.clear()
         self.gui.processIncoming()
 
@@ -162,7 +162,7 @@ class ThreadedClient:
             import sys
             sys.exit(1)
         self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        # self.parent.after(5, self.periodicCall)
+        self.parent.after(5, self.periodicCall)
 
 
     def ptpCapture(self):
