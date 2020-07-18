@@ -68,7 +68,7 @@ class PDCrun(Thread):
 
 p = ptpSniffer()
 pack_list = []
-cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+# cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
 
 ### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
@@ -78,7 +78,7 @@ class ThreadedClient:
 
         # Create the queue
         self.queue = queue.Queue(1)
-        # self.queue.maxsize = 1
+        self.queue.maxsize = 1
         self.qLock1 = threading.Lock()
         self.qLock2 = threading.Lock()
         self.qev1 = threading.Event()
@@ -116,44 +116,43 @@ class ThreadedClient:
 
 
         try:
-        #     #
-        #     self.ptpCapture()
-        #
-        #     if self.qev1.isSet():
-        #         self.qLock1.acquire()
-        #         if len(self.thread1.ts_buffer) > 0:
-        #             buff1 = self.thread1.ts_buffer.copy()
-        #             ts1 = True
-        #         self.qLock1.release()
-        #         self.qev1.clear()
-        #
-        #     if self.qev2.isSet():
-        #         self.qLock2.acquire()
-        #         if len(self.thread3.ts_buffer) > 0:
-        #             buff2 = self.thread3.ts_buffer.copy()
-        #             ts2 = True
-        #         self.qLock2.release()
-        #         self.qev2.clear()
-        #
-        #     if ts1 and ts2:
-        #         print('PMU 1\n-------------------------')
-        #         print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
-        #         print(' Time Delta:', max(buff1) - min(buff1))
-        #         print('PMU 2\n-------------------------')
-        #         print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
-        #         print(' Time Delta:', max(buff2) - min(buff2))
-        #
-        #         print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
-        #         print('-------------')
-        #         for pack in self.ptp_buffer:
-        #             print(pack.mesType, '- time: ', pack.tsComplete)
-        #         ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
-        #         self.avgDelay.append(ptpDelay)
-        #         print('-------------\n')
-        #         print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
-        #         self.ptp_buffer.clear()
-        #     else:
-        #         pass
+            self.ptpCapture()
+
+            if self.qev1.isSet():
+                self.qLock1.acquire()
+                if len(self.thread1.ts_buffer) > 0:
+                    buff1 = self.thread1.ts_buffer.copy()
+                    ts1 = True
+                self.qLock1.release()
+                self.qev1.clear()
+
+            if self.qev2.isSet():
+                self.qLock2.acquire()
+                if len(self.thread3.ts_buffer) > 0:
+                    buff2 = self.thread3.ts_buffer.copy()
+                    ts2 = True
+                self.qLock2.release()
+                self.qev2.clear()
+
+            if ts1 and ts2:
+                print('PMU 1\n-------------------------')
+                print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
+                print(' Time Delta:', max(buff1) - min(buff1))
+                print('PMU 2\n-------------------------')
+                print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
+                print(' Time Delta:', max(buff2) - min(buff2))
+
+                print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
+                print('-------------')
+                for pack in self.ptp_buffer:
+                    print(pack.mesType, '- time: ', pack.tsComplete)
+                ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
+                self.avgDelay.append(ptpDelay)
+                print('-------------\n')
+                print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
+                self.ptp_buffer.clear()
+            else:
+                pass
             #### update GUI with three data points: PMU level, PTP time, and PMU time
             self.gui.update_GUI(random.randint(25, 75), "00:00:00.000", "00:00:00.000")
             self.running = self.gui.checkIfRunning()
@@ -170,11 +169,12 @@ class ThreadedClient:
             if not self.running:
                 # This is the brutal stop of the system. You may want to do
                 # some cleanup before actually shutting it down.
-
+                parent.quit()
+                parent.destroy()
                 import sys
                 sys.exit(1)
             self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-            # self.parent.after(5, self.periodicCall)
+            #self.parent.after(5, self.periodicCall)
 
 
         if not self.running:
@@ -183,7 +183,7 @@ class ThreadedClient:
             import sys
             sys.exit(1)
         self.parent.after(round((1000 * (1 / self.thread1.data_rate))), self.periodicCall)
-        self.parent.after(5, self.periodicCall)
+        #self.parent.after(5, self.periodicCall)
 
 
 
