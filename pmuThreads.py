@@ -82,7 +82,7 @@ def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
 
 def pdcThread(pmuID, pmu_ip, port, buffSize):
     pdc = Pdc(pdc_id=int(pmuID), pmu_ip=pmu_ip, pmu_port=int(port),buffer_size=buffSize)
-    pdc.logger.setLevel("DEBUG")
+    # pdc.logger.setLevel("DEBUG")
     pdc.run()  # Connect to PMU
     dt_buffer = list()
     try:

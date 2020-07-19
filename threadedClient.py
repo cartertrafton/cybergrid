@@ -5,6 +5,8 @@ from ptpSniffer import ptpSniffer, ptpPacketData
 from threading import Thread
 from time import sleep
 from datetime import datetime
+
+
 # from hanging_threads import start_monitoring
 # monitoring_thread = start_monitoring()
 
@@ -46,27 +48,28 @@ class PDCrun(Thread):
         tsOut = list()
         measOut = list()
         print("Starting PDC " + str(self.pdc_id) + "\n")
-        while self.isAlive():
+        while self.is_alive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
                 if seq < self.data_rate:
                     self.send = False
                     tsOut.append(out['time'])
                     measOut.append(out['measurements'])
-                    seq+=1
+                    seq += 1
                 elif seq == self.data_rate:
-                    try:
+                    if not self.event.isSet():
+                        self.event.set()
+                        self.qLock.acquire()
 
-                        if not self.event.isSet():
-                            self.event.set()
-                            self.qLock.acquire()
-                            self.ts_buffer = tsOut.copy()
-                            self.data_buffer = measOut.copy()
-                            self.qLock.release()
-                    finally:
-                        # print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
+                        self.ts_buffer = tsOut.copy()
+                        self.data_buffer = measOut.copy()
                         tsOut.clear()
                         measOut.clear()
                         seq = 0
+
+                        self.qLock.release()
+
+                        # print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
+
 
 
 ### adapted from
@@ -74,44 +77,43 @@ class PDCrun(Thread):
 
 p = ptpSniffer()
 pack_list = []
-cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+# cap = pyshark.LiveCapture(interface='enp3s0', display_filter='ptp')
+cap = pyshark.LiveCapture(interface='wlp5s0', display_filter='ptp')
+
 
 ### threadedClient class - launches GUI and worker threads
 class ThreadedClient:
     def __init__(self, parent):
         self.running = 1
         self.parent = parent
-
-        # Create the queue
-        self.queue = queue.Queue(1)
-        self.queue.maxsize = 1
+        self.queue = queue.Queue()
         self.qLock1 = threading.Lock()
         self.qLock2 = threading.Lock()
         self.qev1 = threading.Event()
         self.qev2 = threading.Event()
 
         self.ptp_buffer = list()
-        self.spoof_delay = 0.001
+        self.spoof_delay = 0.0005
         #### set up the GUI part
         self.gui = GUI(parent, self.queue)
-
 
         self.thread0 = PMUrun(1, '127.0.0.1', 1410, 2048, True)
         self.thread1 = PDCrun(1, '127.0.0.1', 1410, 2048, self.qev1, self.qLock1)
         self.thread2 = PMUrun(2, '127.0.0.1', 1420, 2048, True)
         self.thread3 = PDCrun(2, '127.0.0.1', 1420, 2048, self.qev2, self.qLock2)
 
-        self.avgDelay = list()
+        self.avgDelay1 = list()
+        self.avgDelay2 = list()
+
         self.thread0.start()
         self.thread2.start()
-        sleep(0.00001)
+        sleep(0.01)
         self.thread1.start()
         self.thread3.start()
         # anything
         self.periodicCall()
 
     def periodicCall(self):
-
 
         self.thread1.ts_buffer.clear()
         self.ptp_buffer.clear()
@@ -133,6 +135,14 @@ class ThreadedClient:
                 self.qLock1.release()
                 self.qev1.clear()
 
+                if self.gui.spoof_status and ts1:
+                    print('before', max(tsbuff1))
+                    self.gpsspoof(tsbuff1, self.spoof_delay)
+                    print('after', max(tsbuff1))
+                    self.spoof_delay = self.spoof_delay + 0.1 * self.spoof_delay
+                elif not self.gui.spoof_status:
+                    self.spoof_delay = 0.0005
+
             if self.qev2.isSet():
                 self.qLock2.acquire()
                 if len(self.thread3.ts_buffer) > 0:
@@ -143,14 +153,6 @@ class ThreadedClient:
                     self.thread3.data_buffer.clear()
                 self.qLock2.release()
                 self.qev2.clear()
-
-                if self.gui.spoof_status:
-                    print('before',max(tsbuff1))
-                    self.gpsspoof(tsbuff1, self.spoof_delay)
-                    print('after',max(tsbuff1))
-                    self.spoof_delay = self.spoof_delay+0.5*self.spoof_delay
-                elif not self.gui.spoof_status:
-                    self.spoof_delay = 0.0005
 
             if ts1 and ts2:
                 self.calcandupdate(tsbuff1, mesbuff1, tsbuff2, mesbuff2)
@@ -173,15 +175,14 @@ class ThreadedClient:
             # self.parent.after(5, self.periodicCall)
 
     def ptpCapture(self):
-        for pak in cap.sniff_continuously(packet_count=5):
+        for pak in cap.sniff_continuously(packet_count=1):
             self.ptp_buffer.append(p.assignPack(pak))
 
         cap.clear()
 
     def gpsspoof(self, tsbuff, delayfac):
         for dp in range(0, len(tsbuff)):
-            tsbuff[dp] = tsbuff[dp]-delayfac     # add  delay
-
+            tsbuff[dp] = tsbuff[dp] - delayfac  # add  delay
 
     def calcandupdate(self, tsbuff1, mesbuff1, tsbuff2, mesbuff2):
         tdelta = 0
@@ -194,38 +195,28 @@ class ThreadedClient:
         # for i in range(0, len(mesbuff1)):
         #     # print(mesbuff1[i][0]['phasors'])
         for i in range(0, len(tsbuff1)):
-            tdelta = (tsbuff2[i]-tsbuff1[i])
-        tdelta = tdelta/len(tsbuff1)
+            tdelta = (tsbuff2[i] - tsbuff1[i])
+        tdelta = tdelta / len(tsbuff1)
         print(tdelta)
         print('Time Differences- max:', max(tsbuff1) - max(tsbuff2), 'min:', min(tsbuff1) - min(tsbuff2))
         print('-------------')
 
-
-        for pack in self.ptp_buffer:
-            print(pack.mesType, '- time: ', pack.tsComplete)
-        ptpDelay = max(tsbuff1) - self.ptp_buffer[0].tsComplete
-        self.avgDelay.append(ptpDelay)
+        # for pack in self.ptp_buffer:
+        #     print(pack.mesType, '- time: ', pack.tsComplete)
+        print(self.ptp_buffer[0].mesType, '- time: ', self.ptp_buffer[0].tsComplete)
+        self.avgDelay1.append(self.ptp_buffer[0].tsComplete - min(tsbuff1))
+        self.avgDelay2.append(self.ptp_buffer[0].tsComplete - min(tsbuff2))
+        print('AVG PMU1-PTP Time Offset:', self.avgDelay1[len(self.avgDelay1) - 1])
+        print('AVG PMU2-PTP Time Offset:', self.avgDelay2[len(self.avgDelay2) - 1])
         print('-------------\n')
-        print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
 
-
-
+        pmu_scale = 100
 
         #### update GUI with three data points: PMU level, PTP time, and PMU time
-        # self.gui.update_GUI(random.randint(25, 75),
-        ###################### pmu level 2
-        ###################### pmu level 3
-        #                     datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
-        #                     datetime.utcfromtimestamp(max(buff1)).strftime('%H:%M:%S.%f'))
-        ###################### pmu time 2
-
-        #### random values
-        self.gui.update_GUI(random.randint(25, 75),
-                            random.randint(25, 75),
-                            random.randint(25, 75),
+        self.gui.update_GUI(pmu_scale * self.avgDelay1[len(self.avgDelay1) - 1],
+                            pmu_scale * self.avgDelay2[len(self.avgDelay2) - 1],
                             datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
                             datetime.utcfromtimestamp(max(tsbuff1)).strftime('%H:%M:%S.%f'),
                             datetime.utcfromtimestamp(max(tsbuff2)).strftime('%H:%M:%S.%f'))
         self.running = self.gui.checkIfRunning()
-        self.gui.processIncoming()
         self.ptp_buffer.clear()

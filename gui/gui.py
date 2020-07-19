@@ -34,7 +34,7 @@ class GUI(tk.Frame):
         self.queue = queue
 
         #### canvas and background
-        self.canvas = tk.Canvas(parent, height=800, width=1200)
+        self.canvas = tk.Canvas(parent, height=800, width=1600)
         self.canvas.pack(side="top", fill="both", expand=True)
         self.background_label = tk.Label(parent, bg='gray')
         self.background_label.place(relwidth=1, relheight=1)
@@ -101,14 +101,14 @@ class GUI(tk.Frame):
         self.button5 = tk.Button(self.attack_frame, textvariable=self.cybergrid_button, font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
         self.button5.place(relx=0.1, rely=0.5, relwidth=0.7, relheight=0.2)
 
-    def update_GUI(self, pmu_level1, pmu_level2, pmu_level3, ptp_t, pmu_t1, pmu_t2):
+    def update_GUI(self, pmu_level1, pmu_level2, ptp_t, pmu_t1, pmu_t2):
         #### set time variables
         self.ptp_time.set(ptp_t)
         self.pmu_time1.set(pmu_t1)
         self.pmu_time2.set(pmu_t2)
 
         #### update PMU display
-        self.pmuDisplay.update_plot(pmu_level1, pmu_level2, pmu_level3, self.spoof_status, self.cybergrid_status)
+        self.pmuDisplay.update_plot(pmu_level1, pmu_level2, not self.spoof_status, self.cybergrid_status)
 
         #### update Node time
         self.nodeDisplay.update_time(self.ptp_time, self.pmu_time1, self.pmu_time2)
@@ -116,24 +116,10 @@ class GUI(tk.Frame):
         #### update system map, if change has been made
         if self.change:
             self.nodeDisplay.update_ptp_status(self.cybergrid_status)
-            self.nodeDisplay.update_pmu_status(self.spoof_status, self.cybergrid_status)
-            self.mapDisplay.update_map(self.spoof_status, self.cybergrid_status)
+            self.nodeDisplay.update_pmu_status(not self.spoof_status, self.cybergrid_status)
+            self.mapDisplay.update_map(not self.spoof_status, self.cybergrid_status)
             self.change = False
         return
-
-    def processIncoming(self):
-        #### process messages in queue
-        while self.queue.qsize():
-            try:
-                msg = self.queue.get(0)
-                # Check contents of message and do whatever is needed. As a
-                # simple test, print it (in real life, you would
-                # suitably update the GUI's display in a richer fashion).
-                # print(msg)
-            except queue.Empty:
-                # just on general principles, although we don't
-                # expect this branch to be taken in this case
-                pass
 
 
     def checkIfRunning(self):
@@ -143,7 +129,7 @@ class GUI(tk.Frame):
 #### functions
 # reset program
 def reset_sim(self):
-    self.spoof_status = True
+    self.spoof_status = False
     self.cybergrid_status = True
     self.change = True
     self.cybergrid_button.set("DEACTIVATE CYBERGRID")
