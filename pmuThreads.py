@@ -52,9 +52,9 @@ def pmuThread(pmuID, pmu_ip, port, buffer_size, setTS):
 
     pmu.set_configuration(cybergridCfg)  # This will load PMU configuration specified in IEEE C37.118.2 -Annex D (Table D.2)
     pmu.set_header()
-    phaseAng1 = -1
-    phaseAng2 = 3.14/2
-    phaseAng3 = -3.14
+    phaseAng1 = 0
+    phaseAng2 = 2.09439
+    phaseAng3 = -2.09439
     pmu.run()  # PMU starts listening for incoming connections
 
     while True:

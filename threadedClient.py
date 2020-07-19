@@ -34,7 +34,7 @@ class PDCrun(Thread):
         self.buff_size = buffsize
         self.send = False
         self.ts_buffer = list()
-        # self.data_buffer = list()
+        self.data_buffer = list()
         self.data_rate = pmuThreads.cybergridCfg.get_data_rate()
         self.event = qev
         self.qLock = lock
@@ -43,27 +43,29 @@ class PDCrun(Thread):
 
     def run(self):
         seq = 0
-        dataOut = list()
+        tsOut = list()
+        measOut = list()
         print("Starting PDC " + str(self.pdc_id) + "\n")
         while self.isAlive():
             for out in pmuThreads.pdcThread(self.pdc_id, self.pdc_ip, self.port, self.buff_size):
                 if seq < self.data_rate:
                     self.send = False
-                    dataOut.append(out['time'])
+                    tsOut.append(out['time'])
+                    measOut.append(out['measurements'])
                     seq+=1
                 elif seq == self.data_rate:
-
-
                     try:
 
                         if not self.event.isSet():
                             self.event.set()
                             self.qLock.acquire()
-                            self.ts_buffer = dataOut.copy()
+                            self.ts_buffer = tsOut.copy()
+                            self.data_buffer = measOut.copy()
                             self.qLock.release()
                     finally:
                         # print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
-                        dataOut.clear()
+                        tsOut.clear()
+                        measOut.clear()
                         seq = 0
 
 
@@ -102,7 +104,7 @@ class ThreadedClient:
         self.avgDelay = list()
         self.thread0.start()
         self.thread2.start()
-        sleep(0.001)
+        sleep(0.00001)
         self.thread1.start()
         self.thread3.start()
         # anything
@@ -123,54 +125,27 @@ class ThreadedClient:
             if self.qev1.isSet():
                 self.qLock1.acquire()
                 if len(self.thread1.ts_buffer) > 0:
-                    buff1 = self.thread1.ts_buffer.copy()
+                    tsbuff1 = self.thread1.ts_buffer.copy()
+                    mesbuff1 = self.thread1.data_buffer.copy()
                     ts1 = True
+                    self.thread1.ts_buffer.clear()
+                    self.thread1.data_buffer.clear()
                 self.qLock1.release()
                 self.qev1.clear()
 
             if self.qev2.isSet():
                 self.qLock2.acquire()
                 if len(self.thread3.ts_buffer) > 0:
-                    buff2 = self.thread3.ts_buffer.copy()
+                    tsbuff2 = self.thread3.ts_buffer.copy()
+                    mesbuff2 = self.thread3.data_buffer.copy()
                     ts2 = True
+                    self.thread3.ts_buffer.clear()
+                    self.thread3.data_buffer.clear()
                 self.qLock2.release()
                 self.qev2.clear()
 
             if ts1 and ts2:
-                print('PMU 1\n-------------------------')
-                print(' Length:', len(buff1), ' Min:', min(buff1), ' Max:', max(buff1))
-                print(' Time Delta:', max(buff1) - min(buff1))
-                print('PMU 2\n-------------------------')
-                print(' Length:', len(buff2), ' Min:', min(buff2), ' Max:', max(buff2))
-                print(' Time Delta:', max(buff2) - min(buff2))
-
-                print('Time Differences- max:', max(buff1)-max(buff2),'min:',min(buff1)-min(buff2))
-                print('-------------')
-                for pack in self.ptp_buffer:
-                    print(pack.mesType, '- time: ', pack.tsComplete)
-                ptpDelay = max(buff1)-self.ptp_buffer[0].tsComplete
-                self.avgDelay.append(ptpDelay)
-                print('-------------\n')
-                print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
-
-                #### update GUI with three data points: PMU level, PTP time, and PMU time
-                # self.gui.update_GUI(random.randint(25, 75),
-                ###################### pmu level 2
-                ###################### pmu level 3
-                #                     datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
-                #                     datetime.utcfromtimestamp(max(buff1)).strftime('%H:%M:%S.%f'))
-                ###################### pmu time 2
-
-                #### random values
-                self.gui.update_GUI(random.randint(25, 75),
-                                    random.randint(25, 75),
-                                    random.randint(25, 75),
-                                    "00:00:00.000",
-                                    "00:00:00.000",
-                                    "00:00:00.000")
-                self.running = self.gui.checkIfRunning()
-                self.gui.processIncoming()
-                self.ptp_buffer.clear()
+                self.calcandupdate(tsbuff1, mesbuff1, tsbuff2, mesbuff2)
 
 
 
@@ -195,3 +170,49 @@ class ThreadedClient:
 
         cap.clear()
 
+    def calcandupdate(self, tsbuff1, mesbuff1, tsbuff2, mesbuff2):
+        tdelta = 0
+        print('PMU 1\n-------------------------')
+        print(' Length:', len(tsbuff1), ' Min:', min(tsbuff1), ' Max:', max(tsbuff1))
+        print(' Time Delta:', max(tsbuff1) - min(tsbuff1))
+        print('PMU 2\n-------------------------')
+        print(' Length:', len(tsbuff2), ' Min:', min(tsbuff2), ' Max:', max(tsbuff2))
+        print(' Time Delta:', max(tsbuff2) - min(tsbuff2))
+        # for i in range(0, len(mesbuff1)):
+        #     # print(mesbuff1[i][0]['phasors'])
+        for i in range(0, len(tsbuff1)):
+            tdelta = (tsbuff2[i]-tsbuff1[i])
+        tdelta = tdelta/len(tsbuff1)
+        print(tdelta)
+        print('Time Differences- max:', max(tsbuff1) - max(tsbuff2), 'min:', min(tsbuff1) - min(tsbuff2))
+        print('-------------')
+
+
+        for pack in self.ptp_buffer:
+            print(pack.mesType, '- time: ', pack.tsComplete)
+        ptpDelay = max(tsbuff1) - self.ptp_buffer[0].tsComplete
+        self.avgDelay.append(ptpDelay)
+        print('-------------\n')
+        print('Average Delay of PTP synchronization:', sum(self.avgDelay) / len(self.avgDelay))
+
+
+
+
+        #### update GUI with three data points: PMU level, PTP time, and PMU time
+        # self.gui.update_GUI(random.randint(25, 75),
+        ###################### pmu level 2
+        ###################### pmu level 3
+        #                     datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+        #                     datetime.utcfromtimestamp(max(buff1)).strftime('%H:%M:%S.%f'))
+        ###################### pmu time 2
+
+        #### random values
+        self.gui.update_GUI(random.randint(25, 75),
+                            random.randint(25, 75),
+                            random.randint(25, 75),
+                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(max(tsbuff1)).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(max(tsbuff2)).strftime('%H:%M:%S.%f'))
+        self.running = self.gui.checkIfRunning()
+        self.gui.processIncoming()
+        self.ptp_buffer.clear()
