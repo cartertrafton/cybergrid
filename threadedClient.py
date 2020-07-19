@@ -91,7 +91,7 @@ class ThreadedClient:
         self.qev2 = threading.Event()
 
         self.ptp_buffer = list()
-
+        self.spoof_delay = 0.001
         #### set up the GUI part
         self.gui = GUI(parent, self.queue)
 
@@ -144,6 +144,14 @@ class ThreadedClient:
                 self.qLock2.release()
                 self.qev2.clear()
 
+                if self.gui.spoof_status:
+                    print('before',max(tsbuff1))
+                    self.gpsspoof(tsbuff1, self.spoof_delay)
+                    print('after',max(tsbuff1))
+                    self.spoof_delay = self.spoof_delay+0.5*self.spoof_delay
+                elif not self.gui.spoof_status:
+                    self.spoof_delay = 0.0005
+
             if ts1 and ts2:
                 self.calcandupdate(tsbuff1, mesbuff1, tsbuff2, mesbuff2)
 
@@ -169,6 +177,11 @@ class ThreadedClient:
             self.ptp_buffer.append(p.assignPack(pak))
 
         cap.clear()
+
+    def gpsspoof(self, tsbuff, delayfac):
+        for dp in range(0, len(tsbuff)):
+            tsbuff[dp] = tsbuff[dp]-delayfac     # add  delay
+
 
     def calcandupdate(self, tsbuff1, mesbuff1, tsbuff2, mesbuff2):
         tdelta = 0

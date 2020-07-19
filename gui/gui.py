@@ -40,7 +40,7 @@ class GUI(tk.Frame):
         self.background_label.place(relwidth=1, relheight=1)
 
         #### status tracking variables
-        self.spoof_status = True
+        self.spoof_status = False
         self.cybergrid_status = True
         self.change = False
 
