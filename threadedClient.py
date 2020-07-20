@@ -217,7 +217,7 @@ class ThreadedClient:
 
 
         #### desync detection
-        detect_threshold = 0.005
+        detect_threshold = 0.009
         if (tdelta > detect_threshold):
             self.desync_detect = True
         else:
