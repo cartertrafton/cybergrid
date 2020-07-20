@@ -91,6 +91,7 @@ class ThreadedClient:
         self.qLock2 = threading.Lock()
         self.qev1 = threading.Event()
         self.qev2 = threading.Event()
+        self.desync_detect = False
 
         self.ptp_buffer = list()
         self.spoof_delay = 0.0005
@@ -104,7 +105,7 @@ class ThreadedClient:
 
         self.avgDelay1 = list()
         self.avgDelay2 = list()
-
+        self.syncFactor = list()
         self.thread0.start()
         self.thread2.start()
         sleep(0.01)
@@ -136,12 +137,10 @@ class ThreadedClient:
                 self.qev1.clear()
 
                 if self.gui.spoof_status and ts1:
-                    print('before', max(tsbuff1))
                     self.gpsspoof(tsbuff1, self.spoof_delay)
-                    print('after', max(tsbuff1))
                     self.spoof_delay = self.spoof_delay + 0.1 * self.spoof_delay
                 elif not self.gui.spoof_status:
-                    self.spoof_delay = 0.0005
+                    self.spoof_delay = 0.001
 
             if self.qev2.isSet():
                 self.qLock2.acquire()
@@ -186,37 +185,69 @@ class ThreadedClient:
 
     def calcandupdate(self, tsbuff1, mesbuff1, tsbuff2, mesbuff2):
         tdelta = 0
-        print('PMU 1\n-------------------------')
-        print(' Length:', len(tsbuff1), ' Min:', min(tsbuff1), ' Max:', max(tsbuff1))
-        print(' Time Delta:', max(tsbuff1) - min(tsbuff1))
-        print('PMU 2\n-------------------------')
-        print(' Length:', len(tsbuff2), ' Min:', min(tsbuff2), ' Max:', max(tsbuff2))
-        print(' Time Delta:', max(tsbuff2) - min(tsbuff2))
-        # for i in range(0, len(mesbuff1)):
-        #     # print(mesbuff1[i][0]['phasors'])
+        # print('PMU 1\n-------------------------')
+        # print(' Length:', len(tsbuff1), ' Min:', min(tsbuff1), ' Max:', max(tsbuff1))
+        # print(' Time Delta:', max(tsbuff1) - min(tsbuff1))
+        # print('PMU 2\n-------------------------')
+        # print(' Length:', len(tsbuff2), ' Min:', min(tsbuff2), ' Max:', max(tsbuff2))
+        # print(' Time Delta:', max(tsbuff2) - min(tsbuff2))
+
         for i in range(0, len(tsbuff1)):
-            tdelta = (tsbuff2[i] - tsbuff1[i])
+            tdelta = tdelta + (tsbuff2[i] - tsbuff1[i])
         tdelta = tdelta / len(tsbuff1)
         print(tdelta)
-        print('Time Differences- max:', max(tsbuff1) - max(tsbuff2), 'min:', min(tsbuff1) - min(tsbuff2))
-        print('-------------')
+        self.syncFactor.append(tdelta)
+        avgsynch = (sum(self.syncFactor)/len(self.syncFactor))
+        print('Average time offset between PMUs:', avgsynch)
+        # print('Time Differences- max:', max(tsbuff1) - max(tsbuff2), 'min:', min(tsbuff1) - min(tsbuff2))
+        # print('-------------')
 
         # for pack in self.ptp_buffer:
         #     print(pack.mesType, '- time: ', pack.tsComplete)
         print(self.ptp_buffer[0].mesType, '- time: ', self.ptp_buffer[0].tsComplete)
-        self.avgDelay1.append(self.ptp_buffer[0].tsComplete - min(tsbuff1))
-        self.avgDelay2.append(self.ptp_buffer[0].tsComplete - min(tsbuff2))
+
+        pmu_diff1 = self.ptp_buffer[0].tsComplete - min(tsbuff1)
+        pmu_diff2 = self.ptp_buffer[0].tsComplete - min(tsbuff2)
+        self.avgDelay1.append(pmu_diff1)
+        self.avgDelay2.append(pmu_diff2)
+
         print('AVG PMU1-PTP Time Offset:', self.avgDelay1[len(self.avgDelay1) - 1])
         print('AVG PMU2-PTP Time Offset:', self.avgDelay2[len(self.avgDelay2) - 1])
         print('-------------\n')
 
-        pmu_scale = 100
+
+        #### desync detection
+        detect_threshold = 0.005
+        if (tdelta > detect_threshold):
+            self.desync_detect = True
+        else:
+            self.desync_detect = False
+
 
         #### update GUI with three data points: PMU level, PTP time, and PMU time
-        self.gui.update_GUI(pmu_scale * self.avgDelay1[len(self.avgDelay1) - 1],
-                            pmu_scale * self.avgDelay2[len(self.avgDelay2) - 1],
+        pmu_scale = -10000
+        if self.gui.cybergrid_status and not self.desync_detect:
+            self.gui.update_GUI(self.desync_detect,
+                            pmu_scale * tdelta,
+                            pmu_scale * avgsynch,
                             datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
                             datetime.utcfromtimestamp(max(tsbuff1)).strftime('%H:%M:%S.%f'),
                             datetime.utcfromtimestamp(max(tsbuff2)).strftime('%H:%M:%S.%f'))
+        elif self.gui.cybergrid_status and self.desync_detect:
+            self.gui.update_GUI(self.desync_detect,
+                            pmu_scale * tdelta,
+                            pmu_scale * avgsynch,
+                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'))
+        elif not self.gui.cybergrid_status:
+            self.gui.update_GUI(self.desync_detect,
+                            pmu_scale * tdelta,
+                            pmu_scale * avgsynch,
+                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(max(tsbuff1)).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(max(tsbuff2)).strftime('%H:%M:%S.%f'))
+
+
         self.running = self.gui.checkIfRunning()
         self.ptp_buffer.clear()

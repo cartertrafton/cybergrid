@@ -17,12 +17,8 @@ class PmuDataDisplay(tk.Frame):
 
     def update_plot(self, lev1, lev2, spoof_status, cybergrid_status):
         # update the plot
-        if not spoof_status and not cybergrid_status:
-            self.add_point(self.level_line1, random.randint(0, 200))
-            self.add_point(self.level_line2, random.randint(0, 200))
-        else:
-            self.add_point(self.level_line1, lev1)
-            self.add_point(self.level_line2, lev2)
+        self.add_point(self.level_line1, lev1)
+        self.add_point(self.level_line2, lev2)
         self.canvas.xview_moveto(1.0)
         return
 

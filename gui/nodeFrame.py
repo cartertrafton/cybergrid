@@ -39,18 +39,18 @@ class NodeDataDisplay(tk.Frame):
         return
 
 
-    def update_pmu_status(self, pmu_status, cybergrid_status):
+    def update_pmu_status(self, desync_detect, cybergrid_status):
         # update the statuses
-        if pmu_status and cybergrid_status:
+        if not desync_detect and cybergrid_status:
             self.status2 = tk.Label(self.canvas, text="ACTIVE", bg='white', fg='blue', anchor='w', font=('consolas', 20))
             self.status3 = tk.Label(self.canvas, text="ACTIVE", bg='white', fg='blue', anchor='w', font=('consolas', 20))
-        elif pmu_status and not cybergrid_status:
+        elif not desync_detect and not cybergrid_status:
             self.status2 = tk.Label(self.canvas, text="UNPROTECTED", bg='white', fg='ORANGE', anchor='w', font=('consolas', 20))
             self.status3 = tk.Label(self.canvas, text="UNPROTECTED", bg='white', fg='ORANGE', anchor='w', font=('consolas', 20))
-        elif not pmu_status and cybergrid_status:
+        elif desync_detect and cybergrid_status:
             self.status2 = tk.Label(self.canvas, text="ATK DETECTED", bg='white', fg='GREEN', anchor='w', font=('consolas', 20))
             self.status3 = tk.Label(self.canvas, text="ATK DETECTED", bg='white', fg='GREEN', anchor='w', font=('consolas', 20))
-        elif not pmu_status and not cybergrid_status:
+        elif desync_detect and not cybergrid_status:
             self.status2 = tk.Label(self.canvas, text="ATK SUCCESSFUL", bg='white', fg='RED', anchor='w', font=('consolas', 20))
             self.status3 = tk.Label(self.canvas, text="ATK SUCCESSFUL", bg='white', fg='RED', anchor='w', font=('consolas', 20))
         self.status2.place(relx=0.45, rely=0.4, relwidth=0.4, relheight=0.1)

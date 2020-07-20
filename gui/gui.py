@@ -101,7 +101,7 @@ class GUI(tk.Frame):
         self.button5 = tk.Button(self.attack_frame, textvariable=self.cybergrid_button, font=('consolas', 20), fg='red', command=lambda: disable_cybergrid(self))
         self.button5.place(relx=0.1, rely=0.5, relwidth=0.7, relheight=0.2)
 
-    def update_GUI(self, pmu_level1, pmu_level2, ptp_t, pmu_t1, pmu_t2):
+    def update_GUI(self, desync_detect, pmu_level1, pmu_level2, ptp_t, pmu_t1, pmu_t2):
         #### set time variables
         self.ptp_time.set(ptp_t)
         self.pmu_time1.set(pmu_t1)
@@ -116,9 +116,11 @@ class GUI(tk.Frame):
         #### update system map, if change has been made
         if self.change:
             self.nodeDisplay.update_ptp_status(self.cybergrid_status)
-            self.nodeDisplay.update_pmu_status(not self.spoof_status, self.cybergrid_status)
             self.mapDisplay.update_map(not self.spoof_status, self.cybergrid_status)
             self.change = False
+
+        self.nodeDisplay.update_pmu_status(desync_detect, self.cybergrid_status)
+
         return
 
 
