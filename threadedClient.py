@@ -95,6 +95,8 @@ class ThreadedClient:
 
         self.ptp_buffer = list()
         self.spoof_delay = 0.0005
+        self.ptpcorrec1 = None
+        self.ptpcorrec2 = None
         #### set up the GUI part
         self.gui = GUI(parent, self.queue)
 
@@ -133,8 +135,10 @@ class ThreadedClient:
                     ts1 = True
                     self.thread1.ts_buffer.clear()
                     self.thread1.data_buffer.clear()
-                self.qLock1.release()
-                self.qev1.clear()
+                    self.qLock1.release()
+                    self.qev1.clear()
+
+                    self.ptpcorrec1 = self.ptpbackup(tsbuff1, True)
 
                 if self.gui.spoof_status and ts1:
                     self.gpsspoof(tsbuff1, self.spoof_delay)
@@ -150,8 +154,10 @@ class ThreadedClient:
                     ts2 = True
                     self.thread3.ts_buffer.clear()
                     self.thread3.data_buffer.clear()
-                self.qLock2.release()
-                self.qev2.clear()
+                    self.qLock2.release()
+                    self.qev2.clear()
+
+                    self.ptpcorrec2 = self.ptpbackup(tsbuff2)
 
             if ts1 and ts2:
                 self.calcandupdate(tsbuff1, mesbuff1, tsbuff2, mesbuff2)
@@ -182,6 +188,20 @@ class ThreadedClient:
     def gpsspoof(self, tsbuff, delayfac):
         for dp in range(0, len(tsbuff)):
             tsbuff[dp] = tsbuff[dp] - delayfac  # add  delay
+
+    def ptpbackup(self, tsbuff, inval):
+        displacementbuff = list()
+
+        if inval:
+            for i in range(0, len(tsbuff)):
+                displacementbuff.append(self.ptp_buffer[0].tsComplete - tsbuff[i])
+            return displacementbuff.copy()
+
+        if not inval:
+            for i in range(0, len(tsbuff)):
+                displacementbuff.append(tsbuff[i]+self.ptp_buffer[0].tsComplete)
+            return displacementbuff.copy()
+
 
     def calcandupdate(self, tsbuff1, mesbuff1, tsbuff2, mesbuff2):
         tdelta = 0
@@ -220,6 +240,7 @@ class ThreadedClient:
         detect_threshold = 0.009
         if (tdelta > detect_threshold):
             self.desync_detect = True
+            backup_buff = self.ptpbackup(self.ptpcorrec1, False)
         else:
             self.desync_detect = False
 
@@ -238,8 +259,8 @@ class ThreadedClient:
                             pmu_scale * tdelta,
                             pmu_scale * avgsynch,
                             datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
-                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'),
-                            datetime.utcfromtimestamp(self.ptp_buffer[0].tsComplete).strftime('%H:%M:%S.%f'))
+                            datetime.utcfromtimestamp(max(backup_buff)).strftime('%H:%M:%S.%f'),
+                            datetime.utcfromtimestamp(max(tsbuff2)).strftime('%H:%M:%S.%f'))
         elif not self.gui.cybergrid_status:
             self.gui.update_GUI(self.desync_detect,
                             pmu_scale * tdelta,
