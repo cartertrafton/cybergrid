@@ -157,7 +157,7 @@ class ThreadedClient:
                     self.qLock2.release()
                     self.qev2.clear()
 
-                    self.ptpcorrec2 = self.ptpbackup(tsbuff2)
+                    self.ptpcorrec2 = self.ptpbackup(tsbuff2, True)
 
             if ts1 and ts2:
                 self.calcandupdate(tsbuff1, mesbuff1, tsbuff2, mesbuff2)

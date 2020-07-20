@@ -44,22 +44,22 @@ class SystemMapDisplay(tk.Frame):
             self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
             self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GREEN", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
-            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="RED", width=10)
+            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="YELLOW", width=10)
             self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="RED", width=10)
             self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="RED", width=10)
         # 01
         elif not cybergrid_status and spoof_status:
-            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="BLUE", width=10)
-            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
+            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="GRAY", width=10)
+            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="GRAY", width=10)
             self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
-            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="RED", width=10)
+            self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="YELLOW", width=10)
             self.PMU_node_connection1 = self.canvas.create_line(125, 150, 125, 185, fill="RED", width=10)
             self.PMU_node_connection2 = self.canvas.create_line(120, 185, 300, 185, fill="RED", width=10)
         # 00
         elif not cybergrid_status and not spoof_status:
-            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="BLUE", width=10)
-            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="BLUE", width=10)
+            self.node1_connection = self.canvas.create_line(150, 75, 350, 75, fill="GRAY", width=10)
+            self.node2_connection = self.canvas.create_line(150, 135, 350, 135, fill="GRAY", width=10)
             self.PTP_connection = self.canvas.create_line(50, 150, 175, 150, fill="GRAY", width=10)
             self.Attack_connection = self.canvas.create_line(50, 200, 300, 200, fill="RED", width=10)
             self.PMU_CC_connection = self.canvas.create_line(350, 200, 350, 75, fill="RED", width=10)
