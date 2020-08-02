@@ -7,8 +7,8 @@ from time import sleep
 from datetime import datetime
 
 
-# from hanging_threads import start_monitoring
-# monitoring_thread = start_monitoring()
+from hanging_threads import start_monitoring
+monitoring_thread = start_monitoring()
 
 class PMUrun(Thread):
     def __init__(self, pmuid, pmuip, port, buffsize, setTS):
@@ -58,15 +58,13 @@ class PDCrun(Thread):
                 elif seq == self.data_rate:
                     if not self.event.isSet():
                         self.event.set()
-                        self.qLock.acquire()
+                        with self.qLock:
+                            self.ts_buffer = tsOut.copy()
+                            self.data_buffer = measOut.copy()
+                            tsOut.clear()
+                            measOut.clear()
+                            seq = 0
 
-                        self.ts_buffer = tsOut.copy()
-                        self.data_buffer = measOut.copy()
-                        tsOut.clear()
-                        measOut.clear()
-                        seq = 0
-
-                        self.qLock.release()
 
                         # print(self.queue, self.queue.qsize(), 'send', len(dataOut), self.queue.full())
 
@@ -128,17 +126,15 @@ class ThreadedClient:
             self.ptpCapture()
 
             if self.qev1.isSet():
-                self.qLock1.acquire()
-                if len(self.thread1.ts_buffer) > 0:
-                    tsbuff1 = self.thread1.ts_buffer.copy()
-                    mesbuff1 = self.thread1.data_buffer.copy()
-                    ts1 = True
-                    self.thread1.ts_buffer.clear()
-                    self.thread1.data_buffer.clear()
-                    self.qLock1.release()
-                    self.qev1.clear()
-
-                    self.ptpcorrec1 = self.ptpbackup(tsbuff1, True)
+                with self.qLock1:
+                    if len(self.thread1.ts_buffer) > 0:
+                        tsbuff1 = self.thread1.ts_buffer.copy()
+                        mesbuff1 = self.thread1.data_buffer.copy()
+                        ts1 = True
+                        self.thread1.ts_buffer.clear()
+                        self.thread1.data_buffer.clear()
+                        self.ptpcorrec1 = self.ptpbackup(tsbuff1, True)
+                        self.qev1.clear()
 
                 if self.gui.spoof_status and ts1:
                     self.gpsspoof(tsbuff1, self.spoof_delay)
@@ -147,17 +143,15 @@ class ThreadedClient:
                     self.spoof_delay = 0.001
 
             if self.qev2.isSet():
-                self.qLock2.acquire()
-                if len(self.thread3.ts_buffer) > 0:
-                    tsbuff2 = self.thread3.ts_buffer.copy()
-                    mesbuff2 = self.thread3.data_buffer.copy()
-                    ts2 = True
-                    self.thread3.ts_buffer.clear()
-                    self.thread3.data_buffer.clear()
-                    self.qLock2.release()
-                    self.qev2.clear()
-
-                    self.ptpcorrec2 = self.ptpbackup(tsbuff2, True)
+                with self.qLock2:
+                    if len(self.thread3.ts_buffer) > 0:
+                        tsbuff2 = self.thread3.ts_buffer.copy()
+                        mesbuff2 = self.thread3.data_buffer.copy()
+                        ts2 = True
+                        self.thread3.ts_buffer.clear()
+                        self.thread3.data_buffer.clear()
+                        self.ptpcorrec2 = self.ptpbackup(tsbuff2, True)
+                        self.qev2.clear()
 
             if ts1 and ts2:
                 self.calcandupdate(tsbuff1, mesbuff1, tsbuff2, mesbuff2)
